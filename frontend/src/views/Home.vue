@@ -2,7 +2,8 @@
   <div class="home">
     <q-card dark class="bg-grey-9 my-card">
       <q-card-section>
-        <div class="text-h6">Hello fellow in room {{ roomName }}</div>
+        <div v-if="!reconnected" class="text-h6">Hello fellow in: {{ roomName }}</div>
+        <div v-else class="text-h6">Welcome back!: {{ roomName }}</div>
         <div class="text-subtitle2">Your ID: {{ userName }}</div>
       </q-card-section>
 
@@ -12,7 +13,7 @@
         <q-table
           dense
           title="Available rooms"
-          :rows="availableRooms.value"
+          :rows="availableRooms"
           :columns="columns"
           row-key="roomId"
           dark
@@ -36,22 +37,30 @@
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
-import { Ref, ref } from 'vue';
-import * as Colyseus from 'colyseus.js';
-import { QTable } from 'quasar';
+import { Vue } from 'vue-class-component';
+import { Room, RoomAvailable, Client } from 'colyseus.js';
+import { QTable, SessionStorage } from 'quasar';
+import { useMutations, useState } from '@/store/helpers/useModules';
+import { UserStoreState, UserStoreMutations } from '@/store/user/types';
 
-@Options({})
 export default class Home extends Vue {
-  client: Colyseus.Client = new Colyseus.Client('ws://localhost:2567');
+  client: Client = new Client('ws://localhost:2567');
 
-  availableRooms: Ref<Colyseus.RoomAvailable[]> = ref([]);
+  availableRooms: RoomAvailable[] = [];
 
   messages: any[] = [];
 
   userName = '';
 
   roomName = '';
+
+  room: Room | undefined = undefined;
+
+  reconnected = false;
+
+  userStoreMutations: UserStoreMutations = useMutations('user', ['initRoom']);
+
+  userStoreState: UserStoreState = useState('user', ['room', 'isSignedIn'])
 
   columns: QTable['columns'] = [
     {
@@ -75,27 +84,60 @@ export default class Home extends Vue {
   ];
 
   created(): void {
-    this.client.joinOrCreate('my_room').then((room) => {
+    const roomId:string = SessionStorage.getItem('roomId') || '';
+    const sessionId:string = SessionStorage.getItem('sessionId') || '';
+    const { room, isSignedIn } = this.userStoreState;
+
+    if (isSignedIn && !!room) {
+      this.reconnected = true;
+
+      SessionStorage.set('roomId', room.id);
+      SessionStorage.set('sessionId', room.sessionId);
+
       this.roomName = room.name;
       this.userName = room.sessionId;
 
-      console.log(room);
-
-      room.onStateChange((state) => this.stateChange(state));
-      room.onMessage('message', (message) => this.receiveMessage(message));
-    }).catch((e) => {
-      console.log('JOIN ERROR', e);
-    });
-
-    this.client.getAvailableRooms().then((rooms) => {
-      this.availableRooms.value = rooms;
-      console.log(this.availableRooms.value);
-    }).catch((e) => { console.log('CANNOT FETCH ROOMS', e); });
+      this.client.getAvailableRooms().then((rooms: RoomAvailable[]) => {
+        this.availableRooms = rooms;
+      }).catch((e) => { console.log('CANNOT FETCH ROOMS', e); });
+    } else if (!!roomId && !!sessionId) {
+      this.client.reconnect(roomId, sessionId).then((connectedRoom) => {
+        this.reconnected = true;
+        this.initRoomData(connectedRoom);
+      }).catch((e) => {
+        console.log('RECONNECT ERROR', e);
+        this.client.joinOrCreate('my_room').then((connectedRoom) => {
+          this.reconnected = false;
+          this.initRoomData(connectedRoom);
+        }).catch((er) => {
+          console.log('JOIN ERROR', er);
+        });
+      });
+    } else {
+      this.client.joinOrCreate('my_room').then((connectedRoom) => {
+        this.reconnected = false;
+        this.initRoomData(connectedRoom);
+      }).catch((e) => {
+        console.log('JOIN ERROR', e);
+      });
+    }
   }
 
-  stateChange(state: any): void {
-    this.roomName = '';
-    console.log('CHANGED', state);
+  initRoomData(room: Room): void {
+    const { initRoom } = this.userStoreMutations;
+    initRoom(room);
+
+    SessionStorage.set('roomId', room.id);
+    SessionStorage.set('sessionId', room.sessionId);
+
+    this.roomName = room.name;
+    this.userName = room.sessionId;
+
+    room.onMessage('message', (message) => this.receiveMessage(message));
+
+    this.client.getAvailableRooms().then((rooms) => {
+      this.availableRooms = rooms;
+    }).catch((e) => { console.log('CANNOT FETCH ROOMS', e); });
   }
 
   receiveMessage(message: any): void {

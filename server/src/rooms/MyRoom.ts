@@ -18,8 +18,10 @@ export class MyRoom extends Room<MyRoomState> {
     console.log(client.sessionId, "joined!");
   }
 
-  onLeave (client: Client, consented: boolean) {
+  async onLeave (client: Client, consented: boolean) {
     console.log(client.sessionId, "left!");
+
+    await this.allowReconnection(client, 50);
   }
 
   onDispose() {

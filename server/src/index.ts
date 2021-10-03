@@ -1,15 +1,19 @@
-/**
- * IMPORTANT: 
- * ---------
- * Do not manually edit this file if you'd like to use Colyseus Arena
- * 
- * If you're self-hosting (without Arena), you can manually instantiate a
- * Colyseus Server as documented here: 👉 https://docs.colyseus.io/server/api/#constructor-options 
- */
-import { listen } from "@colyseus/arena";
+import { createServer } from "http";
+import { Server } from "colyseus";
+import { MyRoom } from "./rooms/MyRoom";
+import { WebSocketTransport } from "@colyseus/ws-transport";
 
-// Import arena config
-import arenaConfig from "./arena.config";
+const server = createServer(); // create the http server manually
 
-// Create and listen on 2567 (or PORT environment variable.)
-listen(arenaConfig);
+const gameServer = new Server({
+  transport: new WebSocketTransport({
+      server // provide the custom server for `WebSocketTransport`
+  })
+});
+
+// register your room handlers
+gameServer.define('my_room', MyRoom);
+
+// make it available to receive connections
+gameServer.listen(2567);
+console.log(`Listening on ws://localhost:2567`);
