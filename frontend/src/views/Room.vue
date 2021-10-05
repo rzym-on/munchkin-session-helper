@@ -1,13 +1,13 @@
 <template>
   <div class="home">
-    <q-card dark class="bg-grey-9 my-card">
+    <q-card class="my-card">
       <q-card-section>
         <div v-if="!reconnected" class="text-h6">Hello fellow in: {{ roomName }}</div>
         <div v-else class="text-h6">Welcome back!: {{ roomName }}</div>
         <div class="text-subtitle2">Your ID: {{ userName }}</div>
       </q-card-section>
 
-      <q-separator dark inset />
+      <q-separator inset />
 
       <q-card-section>
         <q-table
@@ -16,7 +16,6 @@
           :rows="availableRooms"
           :columns="columns"
           row-key="roomId"
-          dark
           color="amber"
         />
       </q-card-section>
@@ -28,7 +27,6 @@
           :rows="messages"
           :columns="messageCols"
           row-key="roomId"
-          dark
           color="amber"
         />
       </q-card-section>
@@ -42,6 +40,7 @@ import { Room, RoomAvailable, Client } from 'colyseus.js';
 import { QTable, SessionStorage } from 'quasar';
 import { useMutations, useState } from '@/store/helpers/useModules';
 import { UserStoreState, UserStoreMutations } from '@/store/user/types';
+import { joinOrReconnect } from '@/colyseus/helpers';
 
 export default class Home extends Vue {
   client: Client = new Client('ws://localhost:2567');
@@ -84,43 +83,12 @@ export default class Home extends Vue {
   ];
 
   created(): void {
-    const roomId:string = SessionStorage.getItem('roomId') || '';
-    const sessionId:string = SessionStorage.getItem('sessionId') || '';
     const { room, isSignedIn } = this.userStoreState;
 
-    if (isSignedIn && !!room) {
-      this.reconnected = true;
-
-      SessionStorage.set('roomId', room.id);
-      SessionStorage.set('sessionId', room.sessionId);
-
-      this.roomName = room.name;
-      this.userName = room.sessionId;
-
-      this.client.getAvailableRooms().then((rooms: RoomAvailable[]) => {
-        this.availableRooms = rooms;
-      }).catch((e) => { console.log('CANNOT FETCH ROOMS', e); });
-    } else if (!!roomId && !!sessionId) {
-      this.client.reconnect(roomId, sessionId).then((connectedRoom) => {
-        this.reconnected = true;
-        this.initRoomData(connectedRoom);
-      }).catch((e) => {
-        console.log('RECONNECT ERROR', e);
-        this.client.joinOrCreate('my_room').then((connectedRoom) => {
-          this.reconnected = false;
-          this.initRoomData(connectedRoom);
-        }).catch((er) => {
-          console.log('JOIN ERROR', er);
-        });
-      });
-    } else {
-      this.client.joinOrCreate('my_room').then((connectedRoom) => {
-        this.reconnected = false;
-        this.initRoomData(connectedRoom);
-      }).catch((e) => {
-        console.log('JOIN ERROR', e);
-      });
-    }
+    joinOrReconnect(isSignedIn, room, this.client, 'my_room').then((resp) => {
+      this.reconnected = resp.reconnected;
+      if (resp.connectedRoom) this.initRoomData(resp.connectedRoom);
+    });
   }
 
   initRoomData(room: Room): void {
@@ -146,3 +114,10 @@ export default class Home extends Vue {
   }
 }
 </script>
+<style lang="scss" scoped>
+.body--dark {
+  .my-card {
+    background: #424242;
+  }
+}
+</style>

@@ -11,10 +11,12 @@
     "@quasar/extras": "^1.0.0",
     "colyseus.js": "^0.14.13",
     "core-js": "^3.6.5",
+    "qrcode.vue": "^3.3.2",
     "quasar": "^2.0.0",
     "vue": "^3.0.0",
     "vue-class-component": "^8.0.0-0",
     "vue-router": "^4.0.0-0",
+    "vue3-qrcode-reader": "^0.0.1",
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {

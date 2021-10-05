@@ -1,6 +1,6 @@
 # GrandMajster
 
-Open `frontend/` and `server/` in separate IDE's for proper debugging.
+Open `frontend/` and `server/` in separate IDE's to avoid IDE errors.
 
 To start project open first terminal window and write:
 ```sh

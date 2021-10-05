@@ -1,4 +1,4 @@
-import { Room, Client } from "colyseus";
+import { Room, Client, Server } from "colyseus";
 import { MyRoomState } from "./schema/MyRoomState";
 
 export class MyRoom extends Room<MyRoomState> {
@@ -6,11 +6,31 @@ export class MyRoom extends Room<MyRoomState> {
   onCreate (options: any) {
     this.setState(new MyRoomState());
 
-    this.onMessage("type", (client, message) => {
-      //
-      // handle "type" message
-      //
+    this.presence.subscribe("movePlayer", (resp:any) => {
+      if (this.roomId === resp.fromRoomId) {
+        const client = this.clients.find((client) => client.id === resp.clientId);
+
+        console.log('SENDING NEW CLIENT');
+
+        client.send('switchRoom', {
+          toRoomId: resp.toRoomId
+        });
+      }
     });
+
+    this.onMessage("type", (client, message) => {
+    });
+
+    this.onMessage("addWatcher", (client, message:{clientId:string}) => {
+      const [sessionId, id] = message.clientId.split(" ");
+      this.presence.publish("movePlayer", {
+        fromRoomId: id,
+        toRoomId: this.roomId,
+        clientId: sessionId
+      });
+    });
+
+
 
   }
 

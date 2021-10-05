@@ -13,6 +13,7 @@ const gameServer = new Server({
 
 // register your room handlers
 gameServer.define('my_room', MyRoom);
+gameServer.define('lobby', MyRoom);
 
 // make it available to receive connections
 gameServer.listen(2567);
