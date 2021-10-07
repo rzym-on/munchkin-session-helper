@@ -54,7 +54,8 @@
     },
     "rules": {
       "no-console": 0,
-      "no-debugger": 0
+      "no-debugger": 0,
+      "max-classes-per-file": ["error", 2]
     }
   },
   "browserslist": [

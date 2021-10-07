@@ -4,13 +4,15 @@ import { UserStoreState } from './types';
 export default {
   namespaced: true,
   state: <UserStoreState> {
-    isSignedIn: false,
     room: undefined,
   },
   mutations: {
     initRoom(state:UserStoreState, room:Room):void {
       state.room = room;
-      state.isSignedIn = true;
     },
+  },
+  getters: {
+    getRoomName: (state:UserStoreState):string => state.room?.name || '',
+    getUserId: (state:UserStoreState):string => state.room?.sessionId || '',
   },
 };

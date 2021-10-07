@@ -12,7 +12,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/Manage.vue'),
     children: [
       {
-        path: 'room',
+        path: '',
         name: 'Room',
         component: () => import('../views/Room.vue'),
       },

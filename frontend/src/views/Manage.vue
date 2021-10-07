@@ -19,7 +19,7 @@
     <q-drawer show-if-above v-model="leftDrawerOpen" side="left" elevated>
       <q-scroll-area class="fit">
         <q-list padding class="menu-list">
-          <q-item clickable to="/manage/room">
+          <q-item clickable exact to="/manage">
             <q-item-section avatar>
               <q-icon name="inbox" />
             </q-item-section>

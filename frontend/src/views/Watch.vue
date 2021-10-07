@@ -31,10 +31,9 @@
 <script lang="ts">
 import { Vue, Options } from 'vue-class-component';
 import { Client } from 'colyseus.js';
-import { SessionStorage } from 'quasar';
 import QrcodeVue from 'qrcode.vue';
-import { joinOrReconnect } from '@/colyseus/helpers';
-import { useMutations, useState } from '@/store/helpers/useModules';
+import { createOrReconnect, switchRoom } from '@/colyseus/helpers';
+import { useMutation, useState } from '@/store/helpers/useModules';
 import { UserStoreState, UserStoreMutations } from '@/store/user/types';
 
 @Options({
@@ -45,41 +44,27 @@ import { UserStoreState, UserStoreMutations } from '@/store/user/types';
 export default class Watch extends Vue {
   client: Client = new Client('ws://localhost:2567');
 
-  reconnected = false;
-
   switched = false;
-
-  userStoreMutations: UserStoreMutations = useMutations('user', ['initRoom']);
-
-  userStoreState: UserStoreState = useState('user', ['room', 'isSignedIn']);
 
   clientId= '';
 
   size = 360;
 
   created():void {
-    const { room, isSignedIn } = this.userStoreState;
-    const { initRoom } = this.userStoreMutations;
+    const room:UserStoreState['room'] = useState('user', 'room');
+    const initRoom:UserStoreMutations['initRoom'] = useMutation('user', 'initRoom');
 
-    joinOrReconnect(isSignedIn, room, this.client, 'lobby').then((resp) => {
-      this.reconnected = resp.reconnected;
-      if (resp.connectedRoom) {
-        initRoom(resp.connectedRoom);
-        this.clientId = `${resp.connectedRoom.sessionId} ${resp.connectedRoom.id}`;
-        SessionStorage.set('roomId', resp.connectedRoom.id);
-        SessionStorage.set('sessionId', resp.connectedRoom.sessionId);
+    if (room) return;
 
-        resp.connectedRoom.onMessage('switchRoom', (message: {toRoomId:string}) => {
-          console.log('SWITCHING ROOM');
-          if (resp.connectedRoom) {
-            resp.connectedRoom.leave();
-            this.client.joinById(message.toRoomId).then((connectedRoom) => {
-              this.switched = true;
-              SessionStorage.set('roomId', connectedRoom.id);
-              SessionStorage.set('sessionId', connectedRoom.sessionId);
-              initRoom(connectedRoom);
-            });
-          }
+    createOrReconnect(this.client, 'lobby_room').then((connectedRoom) => {
+      if (connectedRoom) {
+        initRoom(connectedRoom);
+        this.clientId = `${connectedRoom.sessionId} ${connectedRoom.id}`;
+
+        connectedRoom.onMessage('switchRoom', (message: {toRoomId:string}) => {
+          switchRoom(connectedRoom, this.client, message.toRoomId).then((switchedRoom) => {
+            if (switchedRoom) initRoom(switchedRoom);
+          });
         });
       }
     });

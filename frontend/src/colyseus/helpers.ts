@@ -1,64 +1,52 @@
-import { Room, RoomAvailable, Client } from 'colyseus.js';
+import { Room, Client } from 'colyseus.js';
 import { SessionStorage } from 'quasar';
 
-export interface JoinOrReconnect {
-  reconnected: boolean,
-  roomName: string,
-  userName: string,
-  availableRooms: RoomAvailable[],
-  connectedRoom: Room | undefined,
-}
-
-export async function joinOrReconnect(
-  isSignedIn:boolean,
-  room:Room | undefined,
+export async function createOrReconnect(
   client:Client,
-  roomToConnect:string,
-):Promise<JoinOrReconnect> {
-  let reconnected = true;
-  let roomName = '';
-  let userName = '';
-  let availableRooms: RoomAvailable[] = [];
+  roomName:string,
+):Promise<Room | undefined> {
   let connectedRoom: Room | undefined;
   const roomId:string = SessionStorage.getItem('roomId') || '';
   const sessionId:string = SessionStorage.getItem('sessionId') || '';
 
-  if (isSignedIn && !!room) {
-    reconnected = true;
-
-    SessionStorage.set('roomId', room.id);
-    SessionStorage.set('sessionId', room.sessionId);
-
-    roomName = room.name;
-    userName = room.sessionId;
-
-    connectedRoom = room;
-    try {
-      availableRooms = await client.getAvailableRooms();
-    } catch (e) {
-      console.log('RECONNECT ERROR', e);
-    }
-  } else if (!!roomId && !!sessionId) {
+  if (!!roomId && !!sessionId) {
     try {
       connectedRoom = await client.reconnect(roomId, sessionId);
     } catch (e) {
       SessionStorage.remove('roomId');
       SessionStorage.remove('sessionId');
-      connectedRoom = await client.joinOrCreate(roomToConnect);
+      connectedRoom = await client.create(roomName);
     }
   } else {
     try {
-      connectedRoom = await client.joinOrCreate(roomToConnect);
+      connectedRoom = await client.create(roomName);
     } catch (e) {
       console.log('JOIN ERROR', e);
     }
   }
 
-  return {
-    reconnected,
-    roomName,
-    userName,
-    availableRooms,
-    connectedRoom,
-  };
+  if (connectedRoom) {
+    SessionStorage.set('roomId', connectedRoom.id);
+    SessionStorage.set('sessionId', connectedRoom.sessionId);
+  }
+
+  return connectedRoom;
+}
+
+export async function switchRoom(
+  roomToLeave:Room,
+  client:Client,
+  newRoomId:string,
+):Promise<Room | undefined> {
+  console.log('SWITCHING ROOM');
+  if (roomToLeave) roomToLeave.leave();
+
+  const switchedRoom = await client.joinById(newRoomId);
+
+  if (switchedRoom) {
+    SessionStorage.set('roomId', switchedRoom.id);
+    SessionStorage.set('sessionId', switchedRoom.sessionId);
+  }
+
+  return switchedRoom;
 }

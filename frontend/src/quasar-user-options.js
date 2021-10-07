@@ -1,7 +1,7 @@
 import './styles/quasar.scss';
 import '@quasar/extras/roboto-font/roboto-font.css';
 import '@quasar/extras/material-icons/material-icons.css';
-import { LocalStorage, SessionStorage } from 'quasar';
+import { LocalStorage, SessionStorage, Notify } from 'quasar';
 
 // To be used on app.use(Quasar, { ... })
 export default {
@@ -9,5 +9,6 @@ export default {
   plugins: {
     LocalStorage,
     SessionStorage,
+    Notify,
   },
 };

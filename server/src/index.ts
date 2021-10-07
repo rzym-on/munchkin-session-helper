@@ -1,19 +1,20 @@
 import { createServer } from "http";
 import { Server } from "colyseus";
-import { MyRoom } from "./rooms/MyRoom";
+import { SessionRoom } from "./rooms/SessionRoom";
+import { LobbyRoom } from "./rooms/LobbyRoom";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 
-const server = createServer(); // create the http server manually
+const server = createServer();
 
 const gameServer = new Server({
   transport: new WebSocketTransport({
-      server // provide the custom server for `WebSocketTransport`
+      server
   })
 });
 
 // register your room handlers
-gameServer.define('my_room', MyRoom);
-gameServer.define('lobby', MyRoom);
+gameServer.define('session_room', SessionRoom);
+gameServer.define('lobby_room', LobbyRoom);
 
 // make it available to receive connections
 gameServer.listen(2567);

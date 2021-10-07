@@ -1,14 +1,14 @@
 <template>
-  <div class="home">
+  <q-page>
     <q-card class="my-card">
       <q-card-section>
-        <div v-if="!reconnected" class="text-h6">Hello fellow in: {{ roomName }}</div>
-        <div v-else class="text-h6">Welcome back!: {{ roomName }}</div>
+        <div class="text-h6">Hello fellow in: {{ roomName }}</div>
         <div class="text-subtitle2">Your ID: {{ userName }}</div>
       </q-card-section>
 
       <q-separator inset />
 
+      <!-- ROOMS AVAILABLE -->
       <q-card-section>
         <q-table
           dense
@@ -20,6 +20,7 @@
         />
       </q-card-section>
 
+      <!-- ROOM MESSAGES -->
       <q-card-section>
         <q-table
           dense
@@ -31,16 +32,37 @@
         />
       </q-card-section>
     </q-card>
-  </div>
+
+    <edit-player v-model="addPlayerDialog"></edit-player>
+
+    <!-- FAB BUTTONS -->
+    <q-page-sticky position="bottom-right" :offset="[18, 18]">
+      <q-fab color="purple" icon="add" direction="up">
+        <q-fab-action
+          external-label
+          label-position="left"
+          color="secondary"
+          icon="person_add"
+          label="Add player"
+          @click="addPlayerDialog = true"
+        />
+      </q-fab>
+    </q-page-sticky>
+  </q-page>
 </template>
 
 <script lang="ts">
-import { Vue } from 'vue-class-component';
+import { useStore } from 'vuex';
+import { Vue, Options } from 'vue-class-component';
 import { Room, RoomAvailable, Client } from 'colyseus.js';
-import { QTable, SessionStorage } from 'quasar';
-import { useMutations, useState } from '@/store/helpers/useModules';
-import { UserStoreState, UserStoreMutations } from '@/store/user/types';
-import { joinOrReconnect } from '@/colyseus/helpers';
+import { QTable } from 'quasar';
+import { useMutation, useState, useGetter } from '@/store/helpers/useModules';
+import { createOrReconnect } from '@/colyseus/helpers';
+import EditPlayer from '@/components/dialog/EditPlayer.vue';
+
+@Options({
+  components: { EditPlayer },
+})
 
 export default class Home extends Vue {
   client: Client = new Client('ws://localhost:2567');
@@ -49,17 +71,9 @@ export default class Home extends Vue {
 
   messages: any[] = [];
 
-  userName = '';
+  userName:string = useGetter('user', 'getUserId');
 
-  roomName = '';
-
-  room: Room | undefined = undefined;
-
-  reconnected = false;
-
-  userStoreMutations: UserStoreMutations = useMutations('user', ['initRoom']);
-
-  userStoreState: UserStoreState = useState('user', ['room', 'isSignedIn'])
+  roomName:string = useGetter('user', 'getRoomName');
 
   columns: QTable['columns'] = [
     {
@@ -82,24 +96,20 @@ export default class Home extends Vue {
     },
   ];
 
-  created(): void {
-    const { room, isSignedIn } = this.userStoreState;
+  addPlayerDialog = false;
 
-    joinOrReconnect(isSignedIn, room, this.client, 'my_room').then((resp) => {
-      this.reconnected = resp.reconnected;
-      if (resp.connectedRoom) this.initRoomData(resp.connectedRoom);
+  created(): void {
+    const room = useState('user', 'room');
+
+    if (room) return;
+
+    createOrReconnect(this.client, 'session_room').then((connectedRoom) => {
+      if (connectedRoom) this.initRoomData(connectedRoom);
     });
   }
 
   initRoomData(room: Room): void {
-    const { initRoom } = this.userStoreMutations;
-    initRoom(room);
-
-    SessionStorage.set('roomId', room.id);
-    SessionStorage.set('sessionId', room.sessionId);
-
-    this.roomName = room.name;
-    this.userName = room.sessionId;
+    useMutation('user', 'initRoom')(room);
 
     room.onMessage('message', (message) => this.receiveMessage(message));
 

@@ -1,26 +1,38 @@
 import { computed } from 'vue';
-import { useStore } from 'vuex';
+import store from '@/store/index';
 
-export function useState(module:string, stateProps:string[]):any {
-  const store = useStore();
+export function useStates(module:string, stateProps:string[]):any {
   const keypair = stateProps.map((prop) => [prop, computed(() => store.state[module][prop])]);
   return Object.fromEntries(keypair);
 }
 
+export function useState(module:string, stateProp:string):any {
+  return store.state[module][stateProp];
+}
+
 export function useGetters(module:string, getters:string[]):any {
-  const store = useStore();
-  const keypair = getters.map((getter) => [getter, computed(() => store.getters[module][getter])]);
+  const keypair = getters.map((getter) => [getter, computed(() => store.getters[`${module}/${getter}`])]);
   return Object.fromEntries(keypair);
+}
+
+export function useGetter(module:string, getter:string):any {
+  return computed(() => store.getters[`${module}/${getter}`]);
 }
 
 export function useMutations(module:string, mutations: string[]):any {
-  const store = useStore();
-  const keypair = mutations.map((mutation) => [mutation, (input) => store.commit(`${module}/${mutation}`, input)]);
+  const keypair = mutations.map((mutation) => [mutation, (input):void => store.commit(`${module}/${mutation}`, input)]);
   return Object.fromEntries(keypair);
 }
 
+export function useMutation(module:string, mutation: string):any {
+  return (input):void => store.commit(`${module}/${mutation}`, input);
+}
+
 export function useActions(module:string, actions: string[]):any {
-  const store = useStore();
   const keypair = actions.map((action) => [action, (input) => store.dispatch(`${module}/${action}`, input)]);
   return Object.fromEntries(keypair);
+}
+
+export function useAction(module:string, action: string):any {
+  return (input) => store.dispatch(`${module}/${action}`, input);
 }

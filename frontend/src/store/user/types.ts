@@ -1,10 +1,20 @@
 import { Room } from 'colyseus.js';
 
 export interface UserStoreState {
-  isSignedIn: boolean;
   room: Room | undefined;
 }
 
 export interface UserStoreMutations {
   initRoom(room:Room):void
+}
+
+export interface UserStoreGetters {
+  getRoomName: string,
+  getUserId: string,
+}
+export interface UserStore {
+  namespaced: boolean,
+  state: UserStoreState,
+  mutations: UserStoreMutations,
+  getters: UserStoreGetters,
 }

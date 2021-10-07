@@ -1,25 +1,11 @@
-import { Room, Client, Server } from "colyseus";
-import { MyRoomState } from "./schema/MyRoomState";
+import { Room, Client } from "colyseus";
+import { SessionState } from "./schema/SessionState";
+import { Schema } from "@colyseus/schema";
 
-export class MyRoom extends Room<MyRoomState> {
+export class SessionRoom extends Room<SessionState> {
 
   onCreate (options: any) {
-    this.setState(new MyRoomState());
-
-    this.presence.subscribe("movePlayer", (resp:any) => {
-      if (this.roomId === resp.fromRoomId) {
-        const client = this.clients.find((client) => client.id === resp.clientId);
-
-        console.log('SENDING NEW CLIENT');
-
-        client.send('switchRoom', {
-          toRoomId: resp.toRoomId
-        });
-      }
-    });
-
-    this.onMessage("type", (client, message) => {
-    });
+    this.setState(new SessionState());
 
     this.onMessage("addWatcher", (client, message:{clientId:string}) => {
       const [sessionId, id] = message.clientId.split(" ");
@@ -30,8 +16,8 @@ export class MyRoom extends Room<MyRoomState> {
       });
     });
 
-
-
+    this.onMessage("type", (client, message) => {
+    });
   }
 
   onJoin (client: Client, options: any) {

@@ -8,13 +8,10 @@
 <script lang="ts">
 import { Vue } from 'vue-class-component';
 import { useState } from '@/store/helpers/useModules';
-import { UserStoreState } from '@/store/user/types';
 
 export default class AddViewer extends Vue {
-  userStoreState: UserStoreState = useState('user', ['room', 'isSignedIn'])
-
   onDecode = (url:string):void => {
-    const { room } = this.userStoreState;
+    const room = useState('user', 'room');
     if (room) {
       room.send('addWatcher', {
         clientId: url,
