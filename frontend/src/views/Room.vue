@@ -8,25 +8,13 @@
 
       <q-separator inset />
 
-      <!-- ROOMS AVAILABLE -->
+      <!-- PLAYERS -->
       <q-card-section>
         <q-table
           dense
-          title="Available rooms"
-          :rows="availableRooms"
-          :columns="columns"
-          row-key="roomId"
-          color="amber"
-        />
-      </q-card-section>
-
-      <!-- ROOM MESSAGES -->
-      <q-card-section>
-        <q-table
-          dense
-          title="Room messages"
-          :rows="messages"
-          :columns="messageCols"
+          title="Players"
+          :rows="players"
+          :columns="playerCols"
           row-key="roomId"
           color="amber"
         />
@@ -52,13 +40,15 @@
 </template>
 
 <script lang="ts">
-import { useStore } from 'vuex';
 import { Vue, Options } from 'vue-class-component';
-import { Room, RoomAvailable, Client } from 'colyseus.js';
+import { Client } from 'colyseus.js';
 import { QTable } from 'quasar';
-import { useMutation, useState, useGetter } from '@/store/helpers/useModules';
+import {
+  useMutation, useState, useGetter, useAction,
+} from '@/store/helpers/useModules';
 import { createOrReconnect } from '@/colyseus/helpers';
 import EditPlayer from '@/components/dialog/EditPlayer.vue';
+import { PlayerState } from '@/colyseus/schema/PlayerState';
 
 @Options({
   components: { EditPlayer },
@@ -67,32 +57,21 @@ import EditPlayer from '@/components/dialog/EditPlayer.vue';
 export default class Home extends Vue {
   client: Client = new Client('ws://localhost:2567');
 
-  availableRooms: RoomAvailable[] = [];
-
-  messages: any[] = [];
-
   userName:string = useGetter('user', 'getUserId');
 
   roomName:string = useGetter('user', 'getRoomName');
 
-  columns: QTable['columns'] = [
-    {
-      name: 'roomId', label: 'Room ID', field: 'roomId', align: 'left',
-    },
-    {
-      name: 'roomName', label: 'Room Name', field: 'name', align: 'left',
-    },
-    {
-      name: 'roomClients', label: 'Clients', field: 'clients', align: 'left',
-    },
-  ];
+  players:PlayerState[] = useGetter('room', 'getAllPlayers');
 
-  messageCols: QTable['columns'] = [
+  playerCols: QTable['columns'] = [
     {
-      name: 'title', label: 'Title', field: 'title', align: 'left',
+      name: 'name', label: 'Name', field: 'name', align: 'left',
     },
     {
-      name: 'desc', label: 'Description', field: 'desc', align: 'left',
+      name: 'lvl', label: 'Level', field: 'lvl', align: 'left',
+    },
+    {
+      name: 'gear', label: 'Gear', field: 'gear', align: 'left',
     },
   ];
 
@@ -104,23 +83,10 @@ export default class Home extends Vue {
     if (room) return;
 
     createOrReconnect(this.client, 'session_room').then((connectedRoom) => {
-      if (connectedRoom) this.initRoomData(connectedRoom);
+      if (!connectedRoom) return;
+      useMutation('user', 'initRoom')(connectedRoom);
+      useAction('room', 'initStateChanges')(connectedRoom);
     });
-  }
-
-  initRoomData(room: Room): void {
-    useMutation('user', 'initRoom')(room);
-
-    room.onMessage('message', (message) => this.receiveMessage(message));
-
-    this.client.getAvailableRooms().then((rooms) => {
-      this.availableRooms = rooms;
-    }).catch((e) => { console.log('CANNOT FETCH ROOMS', e); });
-  }
-
-  receiveMessage(message: any): void {
-    this.messages.push(message);
-    console.log('NEW MESSAGE', message);
   }
 }
 </script>

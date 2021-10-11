@@ -43,14 +43,12 @@ import type { QVueGlobals } from 'quasar';
 import {
   Vue, Options, prop, WithDefault,
 } from 'vue-class-component';
+import { useAction } from '@/store/helpers/useModules';
+import { PlayerState } from '@/colyseus/schema/PlayerState';
 
-class Props {
-  modelValue: WithDefault<boolean> = prop({ default: false });
-}
+class Props { modelValue: WithDefault<boolean> = prop({ default: false }); }
 
-@Options({
-  name: 'edit-player',
-})
+@Options({ name: 'edit-player' })
 export default class EditPlayer extends Vue.with(Props) {
   name = '';
 
@@ -67,6 +65,8 @@ export default class EditPlayer extends Vue.with(Props) {
   }
 
   onSubmit():void {
+    useAction('user', 'addPlayer')(this.name);
+
     this.q.notify({
       color: 'green-4',
       textColor: 'white',

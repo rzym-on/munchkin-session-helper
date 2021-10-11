@@ -1,6 +1,6 @@
 import { Room, Client } from "colyseus";
+import { PlayerState } from "./schema/PlayerState";
 import { SessionState } from "./schema/SessionState";
-import { Schema } from "@colyseus/schema";
 
 export class SessionRoom extends Room<SessionState> {
 
@@ -16,7 +16,10 @@ export class SessionRoom extends Room<SessionState> {
       });
     });
 
-    this.onMessage("type", (client, message) => {
+    this.onMessage("addPlayer", (client, playerName) => {
+      console.log('NEW PLAYER IN GAME: ', playerName);
+      const player = new PlayerState(playerName);
+      this.state.players.push(player);
     });
   }
 
