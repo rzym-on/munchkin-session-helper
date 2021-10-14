@@ -16,11 +16,6 @@ const routes: Array<RouteRecordRaw> = [
         name: 'Room',
         component: () => import('../views/Room.vue'),
       },
-      {
-        path: 'add-viewer',
-        name: 'AddViewer',
-        component: () => import('../views/AddViewer.vue'),
-      },
     ],
   },
   {

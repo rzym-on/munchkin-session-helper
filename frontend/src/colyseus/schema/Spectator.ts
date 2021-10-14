@@ -8,8 +8,7 @@
 import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@colyseus/schema';
 
 
-export class PlayerState extends Schema {
+export class Spectator extends Schema {
+    @type("string") public clientId!: string;
     @type("string") public name!: string;
-    @type("number") public lvl!: number;
-    @type("number") public gear!: number;
 }

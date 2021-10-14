@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { computed } from 'vue';
+import { computed, ComputedRef } from 'vue';
 import store from '@/store/index';
 
 export function useStates(module:string, stateProps:string[]):any {
@@ -16,7 +16,7 @@ export function useGetters(module:string, getters:string[]):any {
   return Object.fromEntries(keypair);
 }
 
-export function useGetter(module:string, getter:string):any {
+export function useGetter(module:string, getter:string):ComputedRef<any> {
   return computed(() => store.getters[`${module}/${getter}`]);
 }
 

@@ -1,38 +1,62 @@
 <template>
-  <q-dialog v-model="inputVal">
-    <q-card>
-      <q-card-section>
-        <div class="text-h6">New player</div>
-      </q-card-section>
-
-      <q-separator />
-
+  <q-dialog v-model="dialogVisible">
+    <q-card style="width: 700px">
       <q-card-section style="max-height: 50vh" class="scroll">
         <q-form
           @submit="onSubmit"
           class="q-gutter-md"
         >
-          <q-input
-            filled
-            v-model="name"
-            label="Player name *"
-            lazy-rules
-            :rules="[ val => val && val.length > 0 || 'Please type something']"
-          />
+        <div class="text-h6">New player</div>
 
-          <div>
-            <q-btn label="Submit" type="submit" color="primary"/>
-            <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
+        <q-separator />
+
+        <div class="row">
+          <div class="col-md-12 col-12">
+            <q-input
+              dense
+              outlined
+              v-model="name"
+              label="Player name *"
+              lazy-rules
+              :rules="[ val => val && val.length > 0 || 'Please type something']"
+            />
           </div>
+          <div class="col-md-6 col-12">
+            <div class="row">
+              <div class="col-2">
+                <span class="dot" :style="'background-color: '+color"></span>
+              </div>
+              <div class="col-10">
+                <q-input
+                  outlined
+                  dense
+                  v-model="color"
+                  :rules="['anyColor']"
+                  label="Player color *"
+                >
+                  <template v-slot:append>
+                    <q-icon name="colorize" class="cursor-pointer">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-color default-view="palette" format-model="hex" v-model="color" />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-12">
+            <div class="row justify-center items-center">
+              <q-radio v-model="isWoman" :val="true" label="Woman" />
+              <q-radio v-model="isWoman" :val="false" label="Man" />
+            </div>
+          </div>
+        </div>
+        <q-card-actions align="right">
+          <q-btn label="Add player" type="submit" color="primary"/>
+        </q-card-actions>
         </q-form>
       </q-card-section>
-
-      <q-separator />
-
-      <!-- <q-card-actions align="right">
-        <q-btn flat label="Decline" color="primary" v-close-popup />
-        <q-btn flat label="Accept" color="primary" v-close-popup />
-      </q-card-actions> -->
     </q-card>
   </q-dialog>
 </template>
@@ -40,32 +64,34 @@
 <script lang="ts">
 import { useQuasar } from 'quasar';
 import type { QVueGlobals } from 'quasar';
-import {
-  Vue, Options, prop, WithDefault,
-} from 'vue-class-component';
+import { Options } from 'vue-class-component';
 import { useAction } from '@/store/helpers/useModules';
-import { PlayerState } from '@/colyseus/schema/PlayerState';
-
-class Props { modelValue: WithDefault<boolean> = prop({ default: false }); }
+import BaseDialog from '@/helpers/BaseDialog';
 
 @Options({ name: 'edit-player' })
-export default class EditPlayer extends Vue.with(Props) {
+export default class EditPlayer extends BaseDialog {
   name = '';
+
+  isWoman = false;
+
+  color = '#ffffff';
 
   q:QVueGlobals = useQuasar();
 
-  get inputVal():boolean {
-    return this.modelValue;
-  }
-
-  set inputVal(val:boolean) {
-    this.$emit('update:modelValue', val);
-    // New changes in v3
-    // https://v3.vuejs.org/guide/migration/v-model.html#v-model
+  beforeClose = () => {
+    this.name = '';
+    this.color = '#ffffff';
+    this.isWoman = false;
   }
 
   onSubmit():void {
-    useAction('user', 'addPlayer')(this.name);
+    const player = {
+      name: this.name,
+      isWoman: this.isWoman,
+      color: this.color,
+    };
+
+    useAction('user', 'addPlayer')(player);
 
     this.q.notify({
       color: 'green-4',
@@ -74,8 +100,22 @@ export default class EditPlayer extends Vue.with(Props) {
       message: `Added player: ${this.name}`,
     });
 
-    this.inputVal = false;
-    this.name = '';
+    this.closeDialog();
   }
 }
 </script>
+<style lang="scss" scoped>
+.dot {
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+.body--light {
+  .dot {
+    border: 1px solid grey;
+  }
+}
+</style>

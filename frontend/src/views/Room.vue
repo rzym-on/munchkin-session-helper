@@ -15,13 +15,54 @@
           title="Players"
           :rows="players"
           :columns="playerCols"
-          row-key="roomId"
+          row-key="name"
           color="amber"
-        />
+          :loading="loading"
+        >
+        <template v-slot:body-cell-color="props">
+          <q-td :props="props">
+            <div>
+              <span class="dot" :style="'background-color: '+props.value"></span>
+            </div>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-isWoman="props">
+          <q-td :props="props">
+            <div>
+              <q-btn
+                size="md"
+                flat
+                :icon="props.value ? 'female' : 'male'"
+                @click="changeGender(props.key)"
+              ></q-btn>
+            </div>
+          </q-td>
+        </template>
+        </q-table>
+      </q-card-section>
+
+      <q-card-section>
+        <q-table
+          dense
+          title="Spectators"
+          :rows="spectators"
+          :columns="spectatorCols"
+          row-key="clientId"
+          color="amber"
+        >
+        <template v-slot:body-cell-kick="props">
+          <q-td :props="props">
+            <div>
+              <q-btn size="md" flat icon="logout" @click="kickSpec(props.key)" />
+            </div>
+          </q-td>
+        </template>
+        </q-table>
       </q-card-section>
     </q-card>
 
     <edit-player v-model="addPlayerDialog"></edit-player>
+    <add-spectator-dialog v-model="addSpectatorDialog"></add-spectator-dialog>
 
     <!-- FAB BUTTONS -->
     <q-page-sticky position="bottom-right" :offset="[18, 18]">
@@ -34,59 +75,104 @@
           label="Add player"
           @click="addPlayerDialog = true"
         />
+        <q-fab-action
+          external-label
+          label-position="left"
+          color="primary"
+          icon="person_search"
+          label="Add spectator"
+          @click="addSpectatorDialog = true"
+        />
       </q-fab>
     </q-page-sticky>
   </q-page>
 </template>
 
 <script lang="ts">
+import { ComputedRef } from 'vue';
 import { Vue, Options } from 'vue-class-component';
-import { Client } from 'colyseus.js';
-import { QTable } from 'quasar';
-import {
-  useMutation, useState, useGetter, useAction,
-} from '@/store/helpers/useModules';
-import { createOrReconnect } from '@/colyseus/helpers';
+import { QTable, useQuasar } from 'quasar';
+import type { QVueGlobals } from 'quasar';
+import { useGetter, useAction } from '@/store/helpers/useModules';
 import EditPlayer from '@/components/dialog/EditPlayer.vue';
-import { PlayerState } from '@/colyseus/schema/PlayerState';
+import AddSpectatorDialog from '@/components/dialog/AddSpectatorDialog.vue';
+import { Player } from '@/colyseus/schema/Player';
+import { Spectator } from '@/colyseus/schema/Spectator';
 
 @Options({
-  components: { EditPlayer },
+  components: { EditPlayer, AddSpectatorDialog },
 })
 
 export default class Home extends Vue {
-  client: Client = new Client('ws://localhost:2567');
+  q:QVueGlobals = useQuasar();
 
-  userName:string = useGetter('user', 'getUserId');
+  players:ComputedRef<Player[]> = useGetter('room', 'getAllPlayers');
 
-  roomName:string = useGetter('user', 'getRoomName');
+  spectators:ComputedRef<Spectator[]> = useGetter('room', 'getAllSpectators');
 
-  players:PlayerState[] = useGetter('room', 'getAllPlayers');
+  isConnectedToRoom:ComputedRef<boolean> = useGetter('user', 'isConnectedToRoom');
+
+  userName:ComputedRef<string> = useGetter('user', 'getUserId');
+
+  roomName:ComputedRef<string> = useGetter('user', 'getRoomName');
+
+  loading:ComputedRef<boolean> = useGetter('room', 'isLoading');
 
   playerCols: QTable['columns'] = [
+    {
+      name: 'color', label: 'Color', field: 'color', align: 'center', style: 'width: 30px',
+    },
+    {
+      name: 'isWoman', label: 'Gender', field: 'isWoman', align: 'center', style: 'width: 30px',
+    },
+    {
+      name: 'lvl', label: 'Level', field: 'lvl', align: 'center', style: 'width: 30px',
+    },
+    {
+      name: 'gear', label: 'Gear', field: 'gear', align: 'center', style: 'width: 30px',
+    },
+    {
+      name: 'name', label: 'Name', field: 'name', align: 'left',
+    },
+  ];
+
+  spectatorCols: QTable['columns'] = [
+    {
+      name: 'id', label: 'Id', field: 'clientId', align: 'left', style: 'width: 50px',
+    },
     {
       name: 'name', label: 'Name', field: 'name', align: 'left',
     },
     {
-      name: 'lvl', label: 'Level', field: 'lvl', align: 'left',
-    },
-    {
-      name: 'gear', label: 'Gear', field: 'gear', align: 'left',
+      name: 'kick', label: 'Kick', field: 'kick', align: 'center',
     },
   ];
 
   addPlayerDialog = false;
 
+  addSpectatorDialog = false;
+
   created(): void {
-    const room = useState('user', 'room');
-
-    if (room) return;
-
-    createOrReconnect(this.client, 'session_room').then((connectedRoom) => {
-      if (!connectedRoom) return;
-      useMutation('user', 'initRoom')(connectedRoom);
-      useAction('room', 'initStateChanges')(connectedRoom);
+    if (this.isConnectedToRoom) return;
+    useAction('user', 'joinCreateSessionRoom')().then((room) => {
+      if (!room) return;
+      useAction('room', 'initStateChanges')(room);
     });
+  }
+
+  kickSpec(clientId:string):void {
+    useAction('user', 'kickSpectator')(clientId);
+
+    this.q.notify({
+      color: 'red-4',
+      textColor: 'white',
+      icon: 'check',
+      message: `Spectator ${clientId} left`,
+    });
+  }
+
+  changeGender(playerName:string):void {
+    useAction('user', 'changeGender')(playerName);
   }
 }
 </script>
@@ -95,5 +181,12 @@ export default class Home extends Vue {
   .my-card {
     background: #424242;
   }
+}
+
+.dot {
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  display: inline-block;
 }
 </style>

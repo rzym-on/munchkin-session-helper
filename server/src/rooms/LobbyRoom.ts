@@ -7,6 +7,7 @@ export class LobbyRoom extends Room<LobbyState> {
     this.setState(new LobbyState());
 
     this.presence.subscribe("movePlayer", (resp:any) => {
+      console.log(this.roomId, resp.fromRoomId);
       if (this.roomId !== resp.fromRoomId) return;
 
       const client = this.clients.find((client) => client.id === resp.clientId);
@@ -19,7 +20,8 @@ export class LobbyRoom extends Room<LobbyState> {
       console.log('Moving watcher to game session: ', resp.toRoomId);
 
       client.send('switchRoom', {
-        toRoomId: resp.toRoomId
+        toRoomId: resp.toRoomId,
+        spectatorName: resp.spectatorName
       });
     });
   }

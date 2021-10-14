@@ -5,18 +5,25 @@
         <div class="row window-height items-center justify-center">
           <div class="col-12 col-md-6">
             <q-card flat bordered class="my-card">
-              <q-card-section v-if="!switched">
+              <q-card-section v-if="isInLobby">
                 <div class="text-h3 center">Your QR code is here</div>
               </q-card-section>
 
-              <q-card-section v-if="!switched" class="center" style="background-color: white">
-                <qrcode-vue v-if="!!clientId" :value="clientId" :size="size" level="H" />
+              <q-card-section v-if="isInLobby" class="center" style="background-color: white">
+                <qrcode-vue
+                  v-if="!!connectionString"
+                  :value="connectionString"
+                  :size="size"
+                  level="H"
+                />
               </q-card-section>
-              <q-card-section v-if="switched" class="center">
-                <div class="text-h3 center">You joined room: {{ userStoreState.room.name }}!</div>
+              <q-card-section v-if="!isInLobby" class="center">
+                <div class="text-h3 center">
+                  Hi {{clientInSessionId}} You joined room: {{ connectedRoomName }}!
+                </div>
               </q-card-section>
 
-              <q-card-section v-if="!switched" class="center">
+              <q-card-section v-if="isInLobby" class="center">
                 Scan this code from "game master device" to watch game session here
               </q-card-section>
 
@@ -29,12 +36,10 @@
   </q-layout>
 </template>
 <script lang="ts">
+import { ComputedRef } from 'vue';
 import { Vue, Options } from 'vue-class-component';
-import { Client } from 'colyseus.js';
 import QrcodeVue from 'qrcode.vue';
-import { createOrReconnect, switchRoom } from '@/colyseus/helpers';
-import { useMutation, useState } from '@/store/helpers/useModules';
-import { UserStoreState, UserStoreMutations } from '@/store/user/types';
+import { useGetter, useAction } from '@/store/helpers/useModules';
 
 @Options({
   components: {
@@ -42,32 +47,29 @@ import { UserStoreState, UserStoreMutations } from '@/store/user/types';
   },
 })
 export default class Watch extends Vue {
-  client: Client = new Client('ws://localhost:2567');
+  connectedRoomName:ComputedRef<string> = useGetter('user', 'getRoomName');
 
-  switched = false;
+  connectedRoomType:ComputedRef<string> = useGetter('user', 'getRoomType');
 
-  clientId= '';
+  clientInSessionId = useGetter('user', 'getUserId');
 
   size = 360;
 
+  get isInLobby():boolean {
+    return this.isConnectedToRoom && this.connectedRoomType.value === 'lobby_room';
+  }
+
+  get isConnectedToRoom():boolean {
+    return useGetter('user', 'isConnectedToRoom').value;
+  }
+
+  get connectionString():boolean {
+    return useGetter('user', 'connectionString').value;
+  }
+
   created():void {
-    const room:UserStoreState['room'] = useState('user', 'room');
-    const initRoom:UserStoreMutations['initRoom'] = useMutation('user', 'initRoom');
-
-    if (room) return;
-
-    createOrReconnect(this.client, 'lobby_room').then((connectedRoom) => {
-      if (connectedRoom) {
-        initRoom(connectedRoom);
-        this.clientId = `${connectedRoom.sessionId} ${connectedRoom.id}`;
-
-        connectedRoom.onMessage('switchRoom', (message: {toRoomId:string}) => {
-          switchRoom(connectedRoom, this.client, message.toRoomId).then((switchedRoom) => {
-            if (switchedRoom) initRoom(switchedRoom);
-          });
-        });
-      }
-    });
+    if (this.isConnectedToRoom) return;
+    useAction('user', 'joinLobby')();
   }
 }
 </script>

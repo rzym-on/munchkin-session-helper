@@ -1,13 +1,14 @@
-import { Client } from 'colyseus.js';
-import { PlayerState } from '@/colyseus/schema/PlayerState';
+import { Player } from '@/colyseus/schema/Player';
+import { Spectator } from '@/colyseus/schema/Spectator';
 
 export interface RoomStoreState {
-  players: PlayerState[],
-  spectators: Client[]
+  loading: boolean,
+  players: Player[],
+  spectators: Map<string, Spectator>
 }
 
 export interface RoomStoreMutations {
-  addPlayer(state:RoomStoreState, player:PlayerState):void,
+  addPlayer(state:RoomStoreState, player:Player):void,
 }
 
 export interface RoomStore {

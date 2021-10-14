@@ -28,16 +28,6 @@
               Room
             </q-item-section>
           </q-item>
-
-          <q-item clickable to="/manage/add-viewer">
-            <q-item-section avatar>
-              <q-icon name="person_add" />
-            </q-item-section>
-
-            <q-item-section>
-              Add viewer
-            </q-item-section>
-          </q-item>
         </q-list>
       </q-scroll-area>
     </q-drawer>

@@ -12,6 +12,10 @@ export async function createOrReconnect(
   if (!!roomId && !!sessionId) {
     try {
       connectedRoom = await client.reconnect(roomId, sessionId);
+      if (connectedRoom && connectedRoom.name !== roomName) {
+        connectedRoom.leave();
+        connectedRoom = await client.joinOrCreate(roomName);
+      }
     } catch (e) {
       SessionStorage.remove('roomId');
       SessionStorage.remove('sessionId');

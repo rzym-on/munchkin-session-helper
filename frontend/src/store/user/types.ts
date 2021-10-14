@@ -1,6 +1,8 @@
-import { Room } from 'colyseus.js';
+import { Client, Room } from 'colyseus.js';
 
 export interface UserStoreState {
+  loading: boolean;
+  client: Client | undefined;
   room: Room | undefined;
 }
 
