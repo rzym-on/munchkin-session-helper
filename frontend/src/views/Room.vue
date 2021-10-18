@@ -18,7 +18,6 @@
           row-key="id"
           color="amber"
           :loading="loading"
-          style="height: 44vh"
           :rows-per-page-options="[0]"
         >
         <template v-slot:loading></template>
@@ -52,6 +51,7 @@
           :columns="spectatorCols"
           row-key="clientId"
           color="amber"
+          :rows-per-page-options="[0]"
         >
         <template v-slot:body-cell-kick="props">
           <q-td :props="props">

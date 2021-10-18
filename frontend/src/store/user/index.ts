@@ -11,10 +11,6 @@ export default {
     room: undefined,
   },
   actions: {
-    addPlayer({ state }: {state:UserStoreState}, player:unknown):void {
-      if (!state.room) return;
-      state.room.send('addPlayer', player);
-    },
     async joinLobby(
       { state, commit, dispatch }:
       {
@@ -56,6 +52,10 @@ export default {
       if (!connectedRoom) return undefined;
       commit('initRoom', connectedRoom);
       return connectedRoom;
+    },
+    addPlayer({ state }: {state:UserStoreState}, player:unknown):void {
+      if (!state.room) return;
+      state.room.send('addPlayer', player);
     },
     kickSpectator({ state }, spectatorId:string):void {
       if (!state.room) return;

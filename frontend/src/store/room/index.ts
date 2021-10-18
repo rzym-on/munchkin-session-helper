@@ -18,7 +18,7 @@ export default {
       const roomState:SessionState = room.state;
       commit('clearLocalState');
 
-      roomState.players.onAdd = (player:Player, key) => {
+      roomState.players.onAdd = (player:Player) => {
         player.onChange = (changes) => {
           commit('loading', true);
           commit('updatePlayer', { player, changes });
@@ -35,7 +35,7 @@ export default {
         commit('nextPlayer', val);
       });
 
-      roomState.spectators.onAdd = (spectator:Spectator, key) => {
+      roomState.spectators.onAdd = (spectator:Spectator) => {
         commit('addSpectator', spectator);
 
         spectator.onRemove = () => commit('removeSpectator', spectator);
@@ -84,22 +84,19 @@ export default {
   getters: {
     anyPlayers: (state:RoomStoreState):boolean => state.players.length > 0,
     getAllPlayers: (state:RoomStoreState):Player[] => state.players,
-    getPlayerByName: (state: RoomStoreState) => function (name:string): Player | undefined {
-      return state.players.find((x) => x.name === name);
-    },
+    getPlayerByName: (state: RoomStoreState) => (name: string):Player|undefined => state.players.find((x) => x.name === name),
     getAllSpectators: (state:RoomStoreState):Spectator[] => {
       const spectators:Spectator[] = [];
-      state.spectators.forEach((value, key) => spectators.push(value));
+      state.spectators.forEach((value) => spectators.push(value));
       return spectators;
     },
     getNames: (state:RoomStoreState):string[] => state.players.map((x) => x.name),
     isLoading: (state:RoomStoreState):boolean => state.loading,
     currentPlayer: (state:RoomStoreState):Player|undefined => state.players.find((x) => x.id === state.currPlayerId),
-    currentPlayerName: (state:RoomStoreState):string => state.players.find((x) => x.id === state.currPlayerId)?.name || '',
-    currentPlayerGender: (state:RoomStoreState):string => (state.players.find((x) => x.id === state.currPlayerId)?.isWoman ? 'female' : 'male'),
+    currentPlayerName: (_, getters):string => getters.currentPlayer?.name || '',
+    currentPlayerGender: (_, getters):string => (getters.currentPlayer?.isWoman ? 'female' : 'male'),
     prevPlayerName: (state:RoomStoreState, getters):string => {
-      const currPlayer:Player = getters.currentPlayer;
-      const currPlayerId = state.players.indexOf(currPlayer);
+      const currPlayerId = state.players.indexOf(getters.currentPlayer);
       const prevIdx = currPlayerId - 1;
       const prevPlayer = prevIdx < 0
         ? state.players[state.players.length - 1]
@@ -108,8 +105,7 @@ export default {
       return prevPlayer?.name || '';
     },
     nextPlayerName: (state:RoomStoreState, getters):string => {
-      const currPlayer:Player = getters.currentPlayer;
-      const currPlayerId = state.players.indexOf(currPlayer);
+      const currPlayerId = state.players.indexOf(getters.currentPlayer);
       const nextIdx = currPlayerId + 1;
       const nextPlayer = state.players.length === nextIdx
         ? state.players[0]

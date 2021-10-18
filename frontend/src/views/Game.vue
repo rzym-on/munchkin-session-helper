@@ -28,7 +28,7 @@
                   class="top-bot-margin"
                   size="lg"
                   icon="expand_less"
-                  @click="lvlUp(currentPlayer?.id)"
+                  @click="lvlUp"
                 />
                 <div class="text-h2 medieval"><b>{{currentPlayer?.lvl}}</b></div>
                 <div class="text-h4 medieval">LVL</div>
@@ -37,7 +37,7 @@
                   class="top-bot-margin"
                   size="lg"
                   icon="expand_more"
-                  @click="lvlDown(currentPlayer?.id)"
+                  @click="lvlDown"
                 />
               </div>
               <div class="col-2 column items-center justify-center">
@@ -46,7 +46,7 @@
                   round
                   :loading="loading"
                   :icon="currentPlayer?.isWoman ? 'female' : 'male'"
-                  @click="changeGender(currentPlayer?.id)"
+                  @click="changeGender"
                 >
                   <!-- To disable spinner while loading -->
                   <template v-slot:loading></template>
@@ -58,7 +58,7 @@
                   class="top-bot-margin"
                   size="lg"
                   icon="expand_less"
-                  @click="gearUp(currentPlayer?.id)"
+                  @click="gearUp"
                 />
                 <div class="text-h2 medieval"><b>{{currentPlayer?.gear}}</b></div>
                 <div class="text-h4 medieval">GEAR</div>
@@ -67,15 +67,15 @@
                   class="top-bot-margin"
                   size="lg"
                   icon="expand_more"
-                  @click="gearDown(currentPlayer?.id)"
+                  @click="gearDown"
                 />
               </div>
             </div>
             <div class="row justify-center top-bot-margin">
-              <div class="column col-6 col-md-4">
+              <div class="col-6">
                 <q-btn size="md" icon="undo" :label="prevPlayerName" @click="prevTurn" />
               </div>
-              <div class="column col-6 col-md-4">
+              <div class="col-6">
                 <q-btn size="md" :label="nextPlayerName" @click="nextTurn" icon-right="redo" />
               </div>
             </div>
@@ -92,7 +92,7 @@
             row-key="id"
             color="amber"
             :loading="loading"
-            style="height: 44vh"
+            style="height: 100%"
             :rows-per-page-options="[0]"
             @row-click="rowClick"
           >
@@ -136,9 +136,7 @@ export default class Game extends Vue {
 
   loading:boolean = useGetter('room', 'isLoading');
 
-  isConnectedToRoom:boolean = useGetter('user', 'isConnectedToRoom');
-
-  currentPlayer:string = useGetter('room', 'currentPlayer');
+  currentPlayer:Player|undefined = useGetter('room', 'currentPlayer');
 
   currentPlayerName:string = useGetter('room', 'currentPlayerName');
 
@@ -165,20 +163,17 @@ export default class Game extends Vue {
   ];
 
   created(): void {
-    if (this.isConnectedToRoom) {
-      this.checkPlayers();
-    } else {
+    const isConnectedToRoom = useGetter('user', 'isConnectedToRoom').value;
+
+    if (!isConnectedToRoom) {
       useAction('user', 'joinCreateSessionRoom')().then((room) => {
         if (!room) return;
-        useAction('room', 'initStateChanges')(room).then(() => {
-          setTimeout(() => { this.checkPlayers(); }, 100);
-        });
+        useAction('room', 'initStateChanges')(room);
       });
+    } else {
+      this.checkPlayers();
+      if (!this.currentPlayer) this.nextTurn();
     }
-  }
-
-  rowClick(e:Event, row:Player):void {
-    useAction('user', 'changeCurrentTurn')(row.id);
   }
 
   checkPlayers():void {
@@ -193,23 +188,17 @@ export default class Game extends Vue {
     });
   }
 
-  changeGender(playerId:number):void {
-    useAction('user', 'changeGender')(playerId);
-  }
+  rowClick(e:Event, row:Player):void { useAction('user', 'changeCurrentTurn')(row.id); }
 
-  lvlUp(playerId:number):void {
-    useAction('user', 'lvlUp')(playerId);
-  }
+  changeGender():void { useAction('user', 'changeGender')(this.currentPlayer?.id); }
 
-  lvlDown(playerId:number):void {
-    useAction('user', 'lvlDown')(playerId);
-  }
+  lvlUp():void { useAction('user', 'lvlUp')(this.currentPlayer?.id); }
 
-  gearUp(playerId:number):void {
-    useAction('user', 'gearUp')(playerId);
-  }
+  lvlDown():void { useAction('user', 'lvlDown')(this.currentPlayer?.id); }
 
-  gearDown(playerId:number):void { useAction('user', 'gearDown')(playerId); }
+  gearUp():void { useAction('user', 'gearUp')(this.currentPlayer?.id); }
+
+  gearDown():void { useAction('user', 'gearDown')(this.currentPlayer?.id); }
 
   nextTurn():void { useAction('user', 'nextTurn')(); }
 
