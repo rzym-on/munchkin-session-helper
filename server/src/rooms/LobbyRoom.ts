@@ -7,7 +7,6 @@ export class LobbyRoom extends Room<LobbyState> {
     this.setState(new LobbyState());
 
     this.presence.subscribe("movePlayer", (resp:any) => {
-      console.log(this.roomId, resp.fromRoomId);
       if (this.roomId !== resp.fromRoomId) return;
 
       const client = this.clients.find((client) => client.id === resp.clientId);

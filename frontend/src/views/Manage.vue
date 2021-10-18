@@ -28,12 +28,23 @@
               Room
             </q-item-section>
           </q-item>
+          <q-item clickable to="/game">
+            <q-item-section avatar>
+              <q-icon name="sports" />
+            </q-item-section>
+
+            <q-item-section>
+              Game
+            </q-item-section>
+          </q-item>
         </q-list>
       </q-scroll-area>
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <q-page>
+        <router-view />
+      </q-page>
     </q-page-container>
 
   </q-layout>

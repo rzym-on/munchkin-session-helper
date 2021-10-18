@@ -15,10 +15,13 @@
           title="Players"
           :rows="players"
           :columns="playerCols"
-          row-key="name"
+          row-key="id"
           color="amber"
           :loading="loading"
+          style="height: 44vh"
+          :rows-per-page-options="[0]"
         >
+        <template v-slot:loading></template>
         <template v-slot:body-cell-color="props">
           <q-td :props="props">
             <div>
@@ -89,7 +92,6 @@
 </template>
 
 <script lang="ts">
-import { ComputedRef } from 'vue';
 import { Vue, Options } from 'vue-class-component';
 import { QTable, useQuasar } from 'quasar';
 import type { QVueGlobals } from 'quasar';
@@ -102,21 +104,24 @@ import { Spectator } from '@/colyseus/schema/Spectator';
 @Options({
   components: { EditPlayer, AddSpectatorDialog },
 })
-
 export default class Home extends Vue {
   q:QVueGlobals = useQuasar();
 
-  players:ComputedRef<Player[]> = useGetter('room', 'getAllPlayers');
+  anyPlayers:boolean = useGetter('room', 'anyPlayers');
 
-  spectators:ComputedRef<Spectator[]> = useGetter('room', 'getAllSpectators');
+  players:Player[] = useGetter('room', 'getAllPlayers');
 
-  isConnectedToRoom:ComputedRef<boolean> = useGetter('user', 'isConnectedToRoom');
+  currentPlayerName:Player | undefined = useGetter('room', 'currentPlayerName');
 
-  userName:ComputedRef<string> = useGetter('user', 'getUserId');
+  spectators:Spectator[] = useGetter('room', 'getAllSpectators');
 
-  roomName:ComputedRef<string> = useGetter('user', 'getRoomName');
+  isConnectedToRoom:boolean = useGetter('user', 'isConnectedToRoom');
 
-  loading:ComputedRef<boolean> = useGetter('room', 'isLoading');
+  userName:string = useGetter('user', 'getUserId');
+
+  roomName:string = useGetter('user', 'getRoomName');
+
+  loading:boolean = useGetter('room', 'isLoading');
 
   playerCols: QTable['columns'] = [
     {
@@ -171,8 +176,8 @@ export default class Home extends Vue {
     });
   }
 
-  changeGender(playerName:string):void {
-    useAction('user', 'changeGender')(playerName);
+  changeGender(playerId:number):void {
+    useAction('user', 'changeGender')(playerId);
   }
 }
 </script>

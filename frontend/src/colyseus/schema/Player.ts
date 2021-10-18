@@ -9,6 +9,7 @@ import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@co
 
 
 export class Player extends Schema {
+    @type("number") public id!: number;
     @type("string") public name!: string;
     @type("number") public lvl!: number;
     @type("number") public gear!: number;

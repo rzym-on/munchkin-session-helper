@@ -36,7 +36,7 @@
   </q-layout>
 </template>
 <script lang="ts">
-import { ComputedRef } from 'vue';
+import { watch } from 'vue';
 import { Vue, Options } from 'vue-class-component';
 import QrcodeVue from 'qrcode.vue';
 import { useGetter, useAction } from '@/store/helpers/useModules';
@@ -47,17 +47,15 @@ import { useGetter, useAction } from '@/store/helpers/useModules';
   },
 })
 export default class Watch extends Vue {
-  connectedRoomName:ComputedRef<string> = useGetter('user', 'getRoomName');
-
-  connectedRoomType:ComputedRef<string> = useGetter('user', 'getRoomType');
+  connectedRoomName:string = useGetter('user', 'getRoomName');
 
   clientInSessionId = useGetter('user', 'getUserId');
 
   size = 360;
 
-  get isInLobby():boolean {
-    return this.isConnectedToRoom && this.connectedRoomType.value === 'lobby_room';
-  }
+  isInSession:boolean = useGetter('user', 'isInSession');
+
+  isInLobby:boolean = useGetter('user', 'isInLobby');
 
   get isConnectedToRoom():boolean {
     return useGetter('user', 'isConnectedToRoom').value;
@@ -70,6 +68,14 @@ export default class Watch extends Vue {
   created():void {
     if (this.isConnectedToRoom) return;
     useAction('user', 'joinLobby')();
+
+    watch(
+      () => this.isInSession,
+      (val) => {
+        if (!val) return;
+        this.$router.push({ name: 'Spectate' });
+      },
+    );
   }
 }
 </script>

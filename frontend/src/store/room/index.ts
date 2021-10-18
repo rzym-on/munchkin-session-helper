@@ -10,18 +10,20 @@ export default {
   state: <RoomStoreState> {
     loading: false,
     players: [],
+    currPlayerId: null,
     spectators: new Map(),
   },
   actions: {
     async initStateChanges({ commit }, room:Room):Promise<void> {
       const roomState:SessionState = room.state;
+      commit('clearLocalState');
 
       roomState.players.onAdd = (player:Player, key) => {
         player.onChange = (changes) => {
           commit('loading', true);
           commit('updatePlayer', { player, changes });
           // We need to force DOM to slightly change it's structure to update changes
-          setTimeout(() => { commit('loading', false); }, 100);
+          setTimeout(() => { commit('loading', false); }, 50);
         };
 
         player.onRemove = () => commit('removePlayer', player);
@@ -29,14 +31,26 @@ export default {
         commit('addPlayer', player);
       };
 
+      roomState.listen('currPlayerId', (val) => {
+        commit('nextPlayer', val);
+      });
+
       roomState.spectators.onAdd = (spectator:Spectator, key) => {
         commit('addSpectator', spectator);
 
         spectator.onRemove = () => commit('removeSpectator', spectator);
       };
+
+      roomState.triggerAll();
     },
   },
   mutations: {
+    clearLocalState(state:RoomStoreState):void {
+      state.loading = false;
+      state.players = [];
+      state.spectators = new Map();
+      state.currPlayerId = null;
+    },
     addPlayer(state:RoomStoreState, player:Player):void {
       state.players.push(player);
     },
@@ -60,6 +74,9 @@ export default {
     removeSpectator(state:RoomStoreState, spectator:Spectator):void {
       state.spectators.delete(spectator.clientId);
     },
+    nextPlayer(state:RoomStoreState, id:number) {
+      state.currPlayerId = id;
+    },
     loading(state: RoomStoreState, value:boolean): void {
       state.loading = value;
     },
@@ -77,5 +94,28 @@ export default {
     },
     getNames: (state:RoomStoreState):string[] => state.players.map((x) => x.name),
     isLoading: (state:RoomStoreState):boolean => state.loading,
+    currentPlayer: (state:RoomStoreState):Player|undefined => state.players.find((x) => x.id === state.currPlayerId),
+    currentPlayerName: (state:RoomStoreState):string => state.players.find((x) => x.id === state.currPlayerId)?.name || '',
+    currentPlayerGender: (state:RoomStoreState):string => (state.players.find((x) => x.id === state.currPlayerId)?.isWoman ? 'female' : 'male'),
+    prevPlayerName: (state:RoomStoreState, getters):string => {
+      const currPlayer:Player = getters.currentPlayer;
+      const currPlayerId = state.players.indexOf(currPlayer);
+      const prevIdx = currPlayerId - 1;
+      const prevPlayer = prevIdx < 0
+        ? state.players[state.players.length - 1]
+        : state.players[prevIdx];
+
+      return prevPlayer?.name || '';
+    },
+    nextPlayerName: (state:RoomStoreState, getters):string => {
+      const currPlayer:Player = getters.currentPlayer;
+      const currPlayerId = state.players.indexOf(currPlayer);
+      const nextIdx = currPlayerId + 1;
+      const nextPlayer = state.players.length === nextIdx
+        ? state.players[0]
+        : state.players[nextIdx];
+
+      return nextPlayer?.name || '';
+    },
   },
 };

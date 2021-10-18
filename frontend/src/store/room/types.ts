@@ -4,7 +4,8 @@ import { Spectator } from '@/colyseus/schema/Spectator';
 export interface RoomStoreState {
   loading: boolean,
   players: Player[],
-  spectators: Map<string, Spectator>
+  currPlayerId: number | null,
+  spectators: Map<string, Spectator>,
 }
 
 export interface RoomStoreMutations {

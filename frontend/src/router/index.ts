@@ -16,12 +16,22 @@ const routes: Array<RouteRecordRaw> = [
         name: 'Room',
         component: () => import('../views/Room.vue'),
       },
+      {
+        path: '/game',
+        name: 'Game',
+        component: () => import('../views/Game.vue'),
+      },
     ],
   },
   {
     path: '/watch',
     name: 'Watch',
     component: () => import('../views/Watch.vue'),
+  },
+  {
+    path: '/spectate',
+    name: 'Spectate',
+    component: () => import('../views/Spectate.vue'),
   },
 ];
 
