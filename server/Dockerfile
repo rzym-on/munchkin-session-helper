@@ -1,7 +1,7 @@
 FROM node:14
-WORKDIR /app/
-COPY package*.json ./
-RUN npm ci --only=production
-COPY ./lib/ /app/
+COPY ./ /app
+WORKDIR /app
+RUN npm install && npm run build
+WORKDIR /app/lib
 EXPOSE 2567
 CMD [ "node", "index.js" ]
