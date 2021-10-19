@@ -1,21 +1,32 @@
 import { createServer } from "http";
-import { Server } from "colyseus";
+import { LocalPresence, Server } from "colyseus";
 import { SessionRoom } from "./rooms/SessionRoom";
 import { LobbyRoom } from "./rooms/LobbyRoom";
 import { WebSocketTransport } from "@colyseus/ws-transport";
+import { lobbyRoomCreated, lobbyRoomDisposed, sessionRoomCreated, sessionRoomDisposed } from "./rooms/events/sessionEvents";
 
 const server = createServer();
+const pres = new LocalPresence();
+const webSocket = new WebSocketTransport({ server });
+
+pres.keys['session_curr'] = 0;
+pres.keys['session_limit'] = 1;
+pres.keys['lobby_curr'] = 0;
+pres.keys['lobby_limit'] = 1;
 
 const gameServer = new Server({
-  transport: new WebSocketTransport({
-      server
-  })
+  presence: pres,
+  transport: webSocket,
 });
 
-// register your room handlers
-gameServer.define('session_room', SessionRoom);
-gameServer.define('lobby_room', LobbyRoom);
+gameServer
+  .define('lobby_room', LobbyRoom)
+  .on("create", lobbyRoomCreated)
+  .on("dispose", lobbyRoomDisposed);
+gameServer
+  .define('session_room', SessionRoom)
+  .on("create", sessionRoomCreated)
+  .on("dispose", sessionRoomDisposed);
 
-// make it available to receive connections
 gameServer.listen(2567);
 console.log(`Listening on ws://localhost:2567`);

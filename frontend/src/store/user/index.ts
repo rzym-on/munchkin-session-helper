@@ -105,7 +105,7 @@ export default {
     },
     initClient(state: UserStoreState): void {
       if (state.client) return;
-      state.client = new Client('ws://localhost:2567');
+      state.client = new Client(process.env.VUE_APP_SERVER);
     },
   },
   getters: {

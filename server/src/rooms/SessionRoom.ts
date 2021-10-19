@@ -22,6 +22,8 @@ export class SessionRoom extends Room<SessionState> {
   onCreate (options: any) {
     this.patchRate = 2000;
 
+    this.maxClients = 8;
+
     this.setState(new SessionState());
 
     this.onMessage("addSpectator", (client, { spectatorName, connectionString }) => {

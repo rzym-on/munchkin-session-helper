@@ -1,0 +1,12 @@
+version: '3'
+services:
+  server_grand_majster:
+    container_name: server.grand.majster
+    build: ./server/
+    ports:
+      - "2567:2567"
+  app_grand_majster:
+    container_name: app.grand.majster
+    build: ./frontend/
+    ports:
+      - "4001:4001"

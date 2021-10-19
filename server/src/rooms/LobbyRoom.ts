@@ -4,6 +4,8 @@ import { LobbyState } from "./schema/LobbyState";
 export class LobbyRoom extends Room<LobbyState> {
 
   onCreate (options: any) {
+    this.maxClients = 8;
+
     this.setState(new LobbyState());
 
     this.presence.subscribe("movePlayer", (resp:any) => {

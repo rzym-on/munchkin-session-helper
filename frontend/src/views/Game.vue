@@ -168,7 +168,9 @@ export default class Game extends Vue {
     if (!isConnectedToRoom) {
       useAction('user', 'joinCreateSessionRoom')().then((room) => {
         if (!room) return;
-        useAction('room', 'initStateChanges')(room);
+        useAction('room', 'initStateChanges')(room).then(() => {
+          this.checkPlayers();
+        });
       });
     } else {
       this.checkPlayers();
