@@ -5,6 +5,7 @@ services:
     build: ./server/
     ports:
       - "2568:2567"
+    env_file: ./server/.env
   app_grand_majster:
     container_name: app.grand.majster
     build: ./frontend/
