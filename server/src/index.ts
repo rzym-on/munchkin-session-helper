@@ -1,3 +1,4 @@
+import "dotenv/config.js";
 import { createServer } from "http";
 import { LocalPresence, Server } from "colyseus";
 import { SessionRoom } from "./rooms/SessionRoom";
@@ -8,11 +9,12 @@ import { lobbyRoomCreated, lobbyRoomDisposed, sessionRoomCreated, sessionRoomDis
 const server = createServer();
 const pres = new LocalPresence();
 const webSocket = new WebSocketTransport({ server });
+const port = parseInt(process.env.PORT, 10);
 
 pres.keys['session_curr'] = 0;
-pres.keys['session_limit'] = 1;
+pres.keys['session_limit'] = process.env.SESSION_LIMIT;
 pres.keys['lobby_curr'] = 0;
-pres.keys['lobby_limit'] = 1;
+pres.keys['lobby_limit'] = process.env.LOBBY_LIMIT;
 
 const gameServer = new Server({
   presence: pres,
@@ -28,5 +30,5 @@ gameServer
   .on("create", sessionRoomCreated)
   .on("dispose", sessionRoomDisposed);
 
-gameServer.listen(2567);
-console.log(`Listening on ws://localhost:2567`);
+gameServer.listen(port);
+console.log(`Listening on ws://localhost:${port}`);

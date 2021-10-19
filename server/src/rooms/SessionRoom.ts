@@ -1,3 +1,4 @@
+import "dotenv/config.js";
 import { Room, Client } from "colyseus";
 import { Player } from "./schema/Player";
 import { SessionState } from "./schema/SessionState";
@@ -22,7 +23,7 @@ export class SessionRoom extends Room<SessionState> {
   onCreate (options: any) {
     this.patchRate = 2000;
 
-    this.maxClients = 8;
+    this.maxClients = parseInt(process.env.SESSION_PLAYER_LIMIT, 10);
 
     this.setState(new SessionState());
 

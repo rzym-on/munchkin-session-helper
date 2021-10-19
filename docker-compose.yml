@@ -4,7 +4,7 @@ services:
     container_name: server.grand.majster
     build: ./server/
     ports:
-      - "2567:2567"
+      - "2568:2567"
   app_grand_majster:
     container_name: app.grand.majster
     build: ./frontend/

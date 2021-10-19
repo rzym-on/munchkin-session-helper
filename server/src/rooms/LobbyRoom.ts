@@ -1,10 +1,11 @@
+import "dotenv/config.js";
 import { Room, Client } from "colyseus";
 import { LobbyState } from "./schema/LobbyState";
 
 export class LobbyRoom extends Room<LobbyState> {
 
   onCreate (options: any) {
-    this.maxClients = 8;
+    this.maxClients = parseInt(process.env.LOBBY_PLAYER_LIMIT, 10);
 
     this.setState(new LobbyState());
 
