@@ -2,14 +2,14 @@ version: '3'
 services:
   server_grand_majster:
     container_name: server.grand.majster
-    image: ghcr.io/rzym-on/app_majster:latest
+    image: ghcr.io/rzym-on/server_majster:latest
     build: ./server/
     ports:
       - "2568:2567"
     env_file: ./server/.env
   app_grand_majster:
     container_name: app.grand.majster
-    image: ghcr.io/rzym-on/server_majster:latest
+    image: ghcr.io/rzym-on/app_majster:latest
     build: ./frontend/
     ports:
       - "4001:4001"
