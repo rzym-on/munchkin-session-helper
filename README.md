@@ -14,4 +14,4 @@ cd frontend
 npm run serve
 ```
 
-Go to `htpp://localhost:8080/` and have fun
+Go to `http://localhost:8080/` and have fun

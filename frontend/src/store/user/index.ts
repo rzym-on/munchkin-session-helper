@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { SessionStorage } from 'quasar';
 import { Room, Client } from 'colyseus.js';
 import { UserStoreState } from './types';
@@ -19,7 +20,7 @@ export default {
         dispatch:CallableFunction
       },
     ):Promise<void> {
-      commit('initClient');
+      await dispatch('initServerConnection');
       if (!state.client) return;
       const lobbyRoom = await createOrReconnect(state.client, 'lobby_room');
 
@@ -44,14 +45,23 @@ export default {
       commit('initRoom', lobbyRoom);
     },
     async joinCreateSessionRoom(
-      { state, commit }: {state:UserStoreState, commit:CallableFunction},
+      { state, commit, dispatch }:
+      {
+        state:UserStoreState,
+        commit:CallableFunction,
+        dispatch:CallableFunction
+      },
     ):Promise<Room<any> | undefined> {
-      commit('initClient');
+      await dispatch('initServerConnection');
       if (!state.client) return undefined;
       const connectedRoom = await createOrReconnect(state.client, 'session_room');
       if (!connectedRoom) return undefined;
       commit('initRoom', connectedRoom);
       return connectedRoom;
+    },
+    async initServerConnection({ commit }: {commit:CallableFunction}):Promise<void> {
+      const { data } = await axios.get<any>('/server-info.json');
+      commit('initClient', data.url);
     },
     addPlayer({ state }: {state:UserStoreState}, player:unknown):void {
       if (!state.room) return;
@@ -103,9 +113,9 @@ export default {
       SessionStorage.remove('sessionId');
       state.room = undefined;
     },
-    initClient(state: UserStoreState): void {
+    initClient(state: UserStoreState, url:string): void {
       if (state.client) return;
-      state.client = new Client(process.env.VUE_APP_SERVER);
+      state.client = new Client(url);
     },
   },
   getters: {
