@@ -64,7 +64,12 @@
         "error",
         2
       ],
-      "max-len": [1, { "code": 130 }]
+      "max-len": [
+        1,
+        {
+          "code": 130
+        }
+      ]
     }
   },
   "eslintIgnore": [

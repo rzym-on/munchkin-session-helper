@@ -3,13 +3,40 @@ name: Docker Image CI
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 jobs:
-  build:
+  build_frontend:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build Image
-      run: docker build ./frontend --file Dockerfile --tag app-grand-majster
+    
+    - name: Build
+      run: |
+        docker build ./frontend --file ./frontend/Dockerfile --tag app_majster:latest
+    
+    - name: Push to registry
+      uses: redhat-actions/push-to-registry@v2
+      with:
+        image: app_majster
+        tags: latest
+        registry: ghcr.io/${{ github.repository_owner }}
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+  
+  build_backend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Build
+      run: |
+        docker build ./server --file ./server/Dockerfile --tag server_majster:latest
+    
+    - name: Push to registry
+      uses: redhat-actions/push-to-registry@v2
+      with:
+        image: server_majster
+        tags: latest
+        registry: ghcr.io/${{ github.repository_owner }}
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}

@@ -1,7 +1,7 @@
 FROM node:14
 COPY ./ /app
 WORKDIR /app
-RUN npm install --only==production && npm run build
+RUN npm install && npm run build
 
 FROM nginx
 WORKDIR /app
