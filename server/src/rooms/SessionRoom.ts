@@ -41,11 +41,23 @@ export class SessionRoom extends Room<SessionState> {
       });
     });
 
-    this.onMessage("addPlayer", (client, player:unknown) => {
+    this.onMessage("addPlayer", (client, player:Player) => {
       if (!this.isGameMaster(client)) return;
 
       const newPlayer = new Player(this.index, player);
       this.state.players.push(newPlayer);
+    });
+
+    this.onMessage("updatePlayer", (client, player:Player) => {
+      if (!this.isGameMaster(client)) return;
+      const idx = this.state.players.findIndex(p => p.id === player.id);
+      this.state.players[idx] = new Player(player.id, player);
+    });
+
+    this.onMessage("removePlayer", (client, player:Player) => {
+      if (!this.isGameMaster(client)) return;
+      const idx = this.state.players.findIndex(p => p.id === player.id);
+      this.state.players.splice(idx, 1);
     });
 
     this.onMessage("kickSpectator", (client, spectatorId:string) => {
