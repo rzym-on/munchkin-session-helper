@@ -45,9 +45,19 @@
 <script setup lang="ts">
 import QrcodeVue from 'qrcode.vue';
 import { useUserStore } from 'src/stores/userStore';
+import { watch } from 'vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const userStore = useUserStore();
-userStore.joinLobby();
+userStore.joinLobby().then(() => {
+  // eslint-disable-next-line no-console
+  console.log(userStore.connectionString);
+});
+
+watch(() => userStore.isInSession, (neVal, _) => {
+  router.push({ name: 'SpectateSession' });
+});
 </script>
 <style scoped lang="scss">
 .q-card {

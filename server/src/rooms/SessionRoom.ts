@@ -50,8 +50,8 @@ export class SessionRoom extends Room<SessionState> {
 
     this.onMessage("updatePlayer", (client, player:Player) => {
       if (!this.isGameMaster(client)) return;
-      const idx = this.state.players.findIndex(p => p.id === player.id);
-      this.state.players[idx] = new Player(player.id, player);
+      const currPlayer = this.state.players.find(p => p.id === player.id);
+      currPlayer?.update(player);
     });
 
     this.onMessage("removePlayer", (client, player:Player) => {
@@ -64,6 +64,7 @@ export class SessionRoom extends Room<SessionState> {
       if (!this.isGameMaster(client)) return;
 
       const spectator = this.clients.find((client) => client.id === spectatorId);
+      this.state.spectators.delete(spectatorId);
       if (spectator) {
         spectator.leave();
       } else {
@@ -128,68 +129,67 @@ export class SessionRoom extends Room<SessionState> {
 
       this.state.currPlayerId = selectedPlayer.id;
     });
-
-    this.onMessage("lvlUp", (client, playerId:number) => {
-      if (!this.isGameMaster(client)) return;
-
-      const selectedPlayer = this.state.players.find(x => x.id === playerId);
-
-      if (!selectedPlayer) return
-
-      selectedPlayer.lvl += 1;
-    });
-
-    this.onMessage("lvlDown", (client, playerId:number) => {
-      if (!this.isGameMaster(client)) return;
-
-      const selectedPlayer = this.state.players.find(x => x.id === playerId);
-
-      if (!selectedPlayer) return
-
-      selectedPlayer.lvl -= selectedPlayer.lvl === 0 ? 0 : 1;
-    });
-
-    this.onMessage("gearUp", (client, playerId:number) => {
-      if (!this.isGameMaster(client)) return;
-
-      const selectedPlayer = this.state.players.find(x => x.id === playerId);
-
-      if (!selectedPlayer) return
-
-      selectedPlayer.gear += 1;
-    });
-
-    this.onMessage("gearDown", (client, playerId:number) => {
-      if (!this.isGameMaster(client)) return;
-
-      const selectedPlayer = this.state.players.find(x => x.id === playerId);
-
-      if (!selectedPlayer) return
-
-      selectedPlayer.gear -= selectedPlayer.gear === 0 ? 0 : 1;
-    });
   }
 
   onJoin (client: Client, options: any) {
     if (!this.gameMaster) {
       this.gameMaster = client.id;
+      this.state.gameMaster = client.id;
       console.log('YOU ARE A GAME MASTER: ', this.gameMaster);
     }
     console.log(client.sessionId, "joined!");
   }
 
   async onLeave (client: Client, consented: boolean) {
-    console.log(client.sessionId, "left!");
-
-    if (this.state.spectators.get(client.sessionId)) {
-      this.state.spectators.delete(client.sessionId);
-    } else {
-      await this.allowReconnection(client, 20);
+    const spectator = this.state.spectators.get(client.sessionId);
+    if (spectator) {
+      await this.waitForSpectator(client);
     }
+
+    if (this.isGameMaster(client)) {
+      await this.waitForGameMaster(client);
+    }
+
+    if (consented) return;
+    
   }
 
   onDispose() {
     console.log("room", this.roomId, "disposing...");
+  }
+
+  async waitForSpectator(client:Client) {
+    const spectator = this.state.spectators.get(client.sessionId);
+    spectator.connected = false;
+
+    try {  
+      // allow disconnected client to reconnect into this room until 20 seconds
+      await this.allowReconnection(client, 60);
+  
+      // client returned! let's re-activate it.
+      spectator.connected = true;
+  
+    } catch (e) {
+      // 20 seconds expired. let's remove the client.
+      this.state.spectators.delete(client.sessionId);
+      console.log(client.sessionId, "left!");
+    }
+  }
+
+  async waitForGameMaster(client:Client) {
+    this.state.gameMasterConnected = false;
+
+    try {  
+      // allow disconnected client to reconnect into this room until 20 seconds
+      await this.allowReconnection(client, 60);
+  
+      // client returned! let's re-activate it.
+      this.state.gameMasterConnected = true;
+  
+    } catch (e) {
+      console.log("Game master left! Disposing room...");
+      this.disconnect();
+    }
   }
 
 }

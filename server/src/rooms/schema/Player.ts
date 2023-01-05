@@ -17,4 +17,12 @@ export class Player extends Schema {
     this.lvl = 0;
     this.gear = 0;
   }
+
+  update(player:Player) {
+    this.name = player.name;
+    this.isWoman = player.isWoman;
+    this.color = player.color;
+    this.lvl = player.lvl;
+    this.gear = player.gear;
+  }
 }

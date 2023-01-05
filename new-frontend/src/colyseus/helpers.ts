@@ -42,6 +42,23 @@ export async function createOrReconnect(
   return connectedRoom;
 }
 
+export async function reconnect(client:Client, roomName:string):Promise<Room | undefined> {
+  let connectedRoom: Room | undefined;
+  const roomId:string = SessionStorage.getItem('roomId') || '';
+  const sessionId:string = SessionStorage.getItem('sessionId') || '';
+
+  if (!!roomId && !!sessionId) {
+    try {
+      connectedRoom = await client.reconnect(roomId, sessionId);
+    } catch (e) { // Probably the room is no longer available
+      SessionStorage.remove('roomId');
+      SessionStorage.remove('sessionId');
+    }
+  }
+
+  return connectedRoom;
+}
+
 export async function switchRoom(
   roomToLeave:Room,
   client:Client,

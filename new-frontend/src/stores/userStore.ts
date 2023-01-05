@@ -2,9 +2,10 @@ import { Client, Room } from 'colyseus.js';
 import { defineStore } from 'pinia';
 import { computed, reactive } from 'vue';
 import { useConfig } from 'src/boot/appConfig';
-import { createOrReconnect, switchRoom } from 'src/colyseus/helpers';
+import { createOrReconnect, reconnect, switchRoom } from 'src/colyseus/helpers';
 import { SessionStorage } from 'quasar';
 import { Player } from 'src/colyseus/schema/Player';
+import { useRoomStore } from './roomStore';
 
 export interface UserState {
   loading: boolean;
@@ -60,6 +61,14 @@ export const useUserStore = defineStore('user', () => {
     state.room = lobbyRoom;
   }
 
+  async function tryReconnectSessionRoom():Promise<boolean> {
+    initConnection();
+    if (!client) return false;
+    const connectedRoom = await reconnect(client, 'session_room');
+    state.room = connectedRoom;
+    return !!connectedRoom;
+  }
+
   async function joinCreateSessionRoom() {
     initConnection();
     if (!client) return;
@@ -68,9 +77,13 @@ export const useUserStore = defineStore('user', () => {
     state.room = connectedRoom;
   }
 
-  function serverMsg(message:string, data:unknown) {
+  function serverMsg(message:string, data:unknown|undefined = undefined) {
     if (!state.room) return;
-    state.room.send(message, data);
+    if (data) {
+      state.room.send(message, data);
+    } else {
+      state.room.send(message);
+    }
   }
 
   function updatePlayer(player:Player) {
@@ -84,12 +97,44 @@ export const useUserStore = defineStore('user', () => {
     });
   }
 
+  const roomStore = useRoomStore();
+
+  function updatePlayerCommand(command:string) {
+    if (!roomStore.currentPlayer?.id) return;
+    const currentPlayer = roomStore.getById(roomStore.currentPlayer?.id);
+    if (!currentPlayer) return;
+
+    switch (command) {
+      case 'lvlUp':
+        currentPlayer.lvl += 1;
+        break;
+      case 'lvlDown':
+        currentPlayer.lvl -= currentPlayer.lvl === 0 ? 0 : 1;
+        break;
+      case 'gearUp':
+        currentPlayer.gear += 1;
+        break;
+      case 'gearDown':
+        currentPlayer.gear -= currentPlayer.gear === 0 ? 0 : 1;
+        break;
+      case 'changeGender':
+        currentPlayer.isWoman = !currentPlayer.isWoman;
+        break;
+      default:
+        //
+    }
+
+    updatePlayer(currentPlayer as Player);
+  }
+
   return {
     state,
     joinLobby,
     joinCreateSessionRoom,
+    tryReconnectSessionRoom,
     serverMsg,
     updatePlayer,
+    updatePlayerCommand,
     addSpectator,
     isConnectedToRoom: computed(() => !!state.room),
     roomName: computed(() => state.room?.id || ''),
@@ -97,5 +142,6 @@ export const useUserStore = defineStore('user', () => {
     isInSession: computed(() => !!state.room && state.room.name === 'session_room'),
     getUserId: computed(() => state.room?.sessionId || ''),
     connectionString: computed(() => `${state.room?.sessionId} ${state.room?.id}` || ''),
+    amIGameMaster: computed(() => roomStore.state.gameMaster === state.room?.sessionId),
   };
 });

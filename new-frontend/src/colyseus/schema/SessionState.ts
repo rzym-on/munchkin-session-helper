@@ -12,5 +12,7 @@ import { Spectator } from './Spectator'
 export class SessionState extends Schema {
     @type([ Player ]) public players: ArraySchema<Player> = new ArraySchema<Player>();
     @type("number") public currPlayerId!: number;
+    @type("string") public gameMaster!: string;
+    @type("boolean") public gameMasterConnected!: boolean;
     @type({ map: Spectator }) public spectators: MapSchema<Spectator> = new MapSchema<Spectator>();
 }

@@ -1,4 +1,4 @@
-import { Notify, QTableColumn } from 'quasar';
+import { QTableColumn } from 'quasar';
 import { Room } from 'colyseus.js';
 import { defineStore } from 'pinia';
 import { Player } from 'src/colyseus/schema/Player';
@@ -11,32 +11,37 @@ export const useRoomStore = defineStore('room', () => {
   const state = reactive({
     loading: false,
     players: [] as Player[],
-    currPlayerId: null,
-    spectators: new Map(),
+    currPlayerId: 0,
+    spectators: new Map<string, Spectator>(),
+    gameMaster: '',
   });
 
   function clearLocalState() {
     state.loading = false;
     state.players = [];
     state.spectators = new Map<string, Spectator>();
-    state.currPlayerId = null;
+    state.currPlayerId = 0;
   }
 
   async function initStateChanges(room:Room) {
     const roomState:SessionState = room.state;
     clearLocalState();
 
+    room.onLeave(() => {
+      window.location.reload();
+    });
+
     roomState.players.onAdd = (player:Player) => {
-      state.players.push(player);
+      state.players.push({ ...player } as Player);
       player.onRemove = () => {
         const playerIdx = state.players.findIndex((x) => x.name === player.name);
         state.players.splice(playerIdx, 1);
       };
 
-      // player.onChange = (changes) => {
-      //   changes.forEach((change) => {
-      //   });
-      // };
+      player.onChange = (changes) => {
+        const idx = state.players.findIndex((x) => x.id === player.id);
+        state.players.splice(idx, 1, { ...player } as Player);
+      };
       player.onRemove = () => {
         const playerIdx = state.players.findIndex((x) => x.name === player.name);
         state.players.splice(playerIdx, 1);
@@ -46,17 +51,24 @@ export const useRoomStore = defineStore('room', () => {
       state.players = [...roomState.players];
     };
 
-    roomState.listen('currPlayerId', (val) => {
-      // Something
+    roomState.listen('currPlayerId', (id:number) => {
+      state.currPlayerId = id;
     });
 
     roomState.spectators.onAdd = (spectator:Spectator) => {
       state.spectators.set(spectator.clientId, spectator);
+      spectator.onChange = (changes) => {
+        // debugger;
+      };
 
       spectator.onRemove = () => {
         state.spectators.delete(spectator.clientId);
       };
     };
+
+    roomState.listen('gameMaster', (newVal:string, prevVal:string) => {
+      state.gameMaster = newVal;
+    });
   }
 
   function getById(id:number) {

@@ -178,14 +178,4 @@ function onSubmit() {
 
 </script>
 <style lang="scss">
-.dot {
-  height: 25px;
-  width: 25px;
-  border-radius: 50%;
-  display: inline-block;
-
-  .body--light & {
-    border: 1px solid grey;
-  }
-}
 </style>

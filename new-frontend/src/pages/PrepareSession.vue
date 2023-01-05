@@ -143,10 +143,12 @@ const spectatorDialog = editDialogCmp();
 const roomStore = useRoomStore();
 const userStore = useUserStore();
 
-userStore.joinCreateSessionRoom().then(() => {
-  if (!userStore.state.room) return;
-  roomStore.initStateChanges(userStore.state.room as Room);
-});
+if (!userStore.isInSession) {
+  userStore.joinCreateSessionRoom().then(() => {
+    if (!userStore.state.room) return;
+    roomStore.initStateChanges(userStore.state.room as Room);
+  });
+}
 
 function changeGender(playerId:number) {
   const player = roomStore.getById(playerId);
@@ -168,10 +170,4 @@ function kickSpectator(clientId:string) {
 
 </script>
 <style scoped lang="scss">
-.dot {
-  height: 25px;
-  width: 25px;
-  border-radius: 50%;
-  display: inline-block;
-}
 </style>

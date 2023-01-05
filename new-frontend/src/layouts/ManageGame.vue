@@ -12,7 +12,10 @@
 
         <q-toolbar-title>
           <q-avatar>
-            <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg">
+            <q-icon
+              name="mdi-sword-cross"
+              size="md"
+            />
           </q-avatar>
           Munchkin game helper
         </q-toolbar-title>
