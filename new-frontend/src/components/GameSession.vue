@@ -28,16 +28,14 @@
           </div>
           <q-separator spaced="sm" />
           <div class="row">
-            <div class="col-2 txt-rotate rotate-left">
+            <div class="col-2">
               <q-btn
+                v-if="userStore.amIGameMaster"
                 size="md"
-                icon="undo"
-                class="custom-outline"
-                :disable="!userStore.amIGameMaster"
-                :label="roomStore.prevPlayerName"
+                class="custom-outline rotate-content-left"
                 @click="userStore.serverMsg('prevTurn')"
               >
-                <!-- <p>{{ roomStore.prevPlayerName }}</p> -->
+                <span class="content">{{ roomStore.prevPlayerName }}</span>
               </q-btn>
             </div>
             <div class="col-3">
@@ -107,33 +105,15 @@
                 @click="userStore.updatePlayerCommand('gearDown')"
               />
             </div>
-            <div class="col-2 txt-rotate rotate-right">
-              <p>{{ roomStore.nextPlayerName }}</p>
-            </div>
-          </div>
-          <div
-            v-if="false"
-            class="row justify-center top-bot-margin"
-          >
-            <div class="col-6">
+            <div class="col-2">
               <q-btn
+                v-if="userStore.amIGameMaster"
                 size="md"
-                icon="undo"
-                class="custom-outline"
-                :disable="!userStore.amIGameMaster"
-                :label="roomStore.prevPlayerName"
-                @click="userStore.serverMsg('prevTurn')"
-              />
-            </div>
-            <div class="col-6">
-              <q-btn
-                size="md"
-                class="custom-outline"
-                :disable="!userStore.amIGameMaster"
-                :label="roomStore.nextPlayerName"
+                class="custom-outline rotate-content-right"
                 @click="userStore.serverMsg('nextTurn')"
-                icon-right="redo"
-              />
+              >
+                <span class="content">{{ roomStore.nextPlayerName }}</span>
+              </q-btn>
             </div>
           </div>
         </q-card-section>
@@ -206,21 +186,21 @@ function rowClick(e:Event, player:Player) {
   text-align: center;
 }
 
-.txt-rotate {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 100px;
-}
-
-.rotate-right {
-  p {
-    transform: rotate(90deg);
+.rotate-content-left {
+  width: 100%;
+  height: 100%;
+  span.content {
+    transform: rotate(270deg);
+    font-size: 1.5rem;
   }
 }
-.rotate-left {
-  .q-btn {
-    transform: rotate(270deg);
+
+.rotate-content-right {
+  width: 100%;
+  height: 100%;
+  span.content {
+    transform: rotate(90deg);
+    font-size: 1.5rem;
   }
 }
 

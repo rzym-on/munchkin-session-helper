@@ -27,7 +27,7 @@ watch(() => userStore.isInSession, async (isInSession) => {
       router.push({ name: 'LobbyRoom' });
     }
   }
-  roomStore.initStateChanges(userStore.state.room as Room);
+  if (userStore.state.room) roomStore.initStateChanges(userStore.state.room as Room);
 }, { immediate: true });
 
 </script>
