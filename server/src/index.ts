@@ -1,9 +1,11 @@
 import "dotenv/config.js";
 import { createServer } from "http";
+import express from 'express';  
 import { LocalPresence, Server } from "colyseus";
 import { SessionRoom } from "./rooms/SessionRoom";
 import { LobbyRoom } from "./rooms/LobbyRoom";
 import { WebSocketTransport } from "@colyseus/ws-transport";
+import { monitor } from "@colyseus/monitor";
 import { lobbyRoomCreated, lobbyRoomDisposed, sessionRoomCreated, sessionRoomDisposed } from "./rooms/events/sessionEvents";
 
 const server = createServer();
@@ -15,6 +17,12 @@ pres.keys['session_curr'] = 0;
 pres.keys['session_limit'] = process.env.SESSION_LIMIT;
 pres.keys['lobby_curr'] = 0;
 pres.keys['lobby_limit'] = process.env.LOBBY_LIMIT;
+
+if (!process.env.NODE_ENV) {
+  const app = express();
+  app.use('/monit', monitor());
+  app.listen(9002);
+}
 
 const gameServer = new Server({
   presence: pres,
@@ -29,6 +37,7 @@ gameServer
   .define('session_room', SessionRoom)
   .on("create", sessionRoomCreated)
   .on("dispose", sessionRoomDisposed);
+
 
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);

@@ -1,84 +1,45 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "munchkin-frontend",
+  "version": "0.0.1",
+  "description": "A Quasar Project",
+  "productName": "Muchnkin game session helper",
+  "author": "rzymon <werkowski.s@gmail.com>",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "eslint --ext .js,.ts,.vue ./src/",
+    "fix": "eslint --ext .js,.ts,.vue ./src/ --fix",
+    "dev": "quasar dev",
+    "build": "quasar build",
+    "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@colyseus/schema": "^1.0.28",
     "@quasar/extras": "^1.0.0",
-    "axios": "^0.23.0",
+    "axios": "^0.21.1",
     "colyseus.js": "^0.14.13",
-    "core-js": "^3.6.5",
-    "qrcode.vue": "^3.3.2",
-    "quasar": "^2.0.0",
+    "pinia": "^2.0.11",
+    "qrcode-reader-vue3": "^3.1.2",
+    "qrcode.vue": "^3.3.3",
+    "quasar": "^2.6.0",
     "vue": "^3.0.0",
-    "vue-class-component": "^8.0.0-0",
-    "vue-router": "^4.0.0-0",
-    "vue3-qrcode-reader": "^0.0.1",
-    "vuex": "^4.0.0-0"
+    "vue-i18n": "^9.2.2",
+    "vue-router": "^4.0.0"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.18.0",
-    "@typescript-eslint/parser": "^4.18.0",
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-plugin-router": "~4.5.0",
-    "@vue/cli-plugin-typescript": "~4.5.0",
-    "@vue/cli-plugin-vuex": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "@vue/compiler-sfc": "^3.0.0",
-    "@vue/eslint-config-airbnb": "^5.0.2",
-    "@vue/eslint-config-typescript": "^7.0.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-vue": "^7.0.0",
-    "sass": "1.32.12",
-    "sass-loader": "^10.1.0",
-    "typescript": "~4.1.5",
-    "vue-cli-plugin-quasar": "~4.0.2"
+    "@intlify/vite-plugin-vue-i18n": "^3.3.1",
+    "@quasar/app-vite": "^1.0.0",
+    "@types/node": "^12.20.21",
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^5.10.0",
+    "autoprefixer": "^10.4.2",
+    "eslint": "^8.10.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-vue": "^9.0.0",
+    "typescript": "^4.5.4"
   },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "@vue/airbnb",
-      "@vue/typescript/recommended"
-    ],
-    "parserOptions": {
-      "ecmaVersion": 2020
-    },
-    "rules": {
-      "no-console": 0,
-      "no-debugger": 0,
-      "@typescript-eslint/explicit-module-boundary-types": 0,
-      "no-param-reassign": 0,
-      "class-methods-use-this": 0,
-      "linebreak-style": 0,
-      "max-classes-per-file": [
-        "error",
-        2
-      ],
-      "max-len": [
-        1,
-        {
-          "code": 130
-        }
-      ]
-    }
-  },
-  "eslintIgnore": [
-    "schema/"
-  ],
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+  "engines": {
+    "node": "^18 || ^16 || ^14.19",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
 }

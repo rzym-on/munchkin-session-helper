@@ -1,0 +1,35 @@
+{
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.codeActionsOnSave": [
+    "source.fixAll.eslint"
+  ],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "vue"
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "eslint.lintTask.enable": true,
+  "eslint.lintTask.options": ".",
+  "eslint.run": "onSave",
+  "eslint.useESLintClass": true,
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#001299",
+    "activityBar.background": "#001299",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#bf0016",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "sash.hoverBorder": "#001299",
+    "statusBar.background": "#000c66",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#001299",
+    "statusBarItem.remoteBackground": "#000c66",
+    "statusBarItem.remoteForeground": "#e7e7e7"
+  },
+  "peacock.color": "#000C66",
+}
