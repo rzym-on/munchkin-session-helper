@@ -163,7 +163,7 @@ import { useUserStore } from 'src/stores/userStore';
 
 const userStore = useUserStore();
 const roomStore = useRoomStore();
-if (!roomStore.currentPlayer) userStore.serverMsg('nextTurn');
+if (!roomStore.currentPlayer && userStore.amIGameMaster) userStore.serverMsg('nextTurn');
 
 function rowClick(e:Event, player:Player) {
   userStore.serverMsg('changeCurrentTurn', player.id);

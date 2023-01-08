@@ -23,6 +23,23 @@ export const useRoomStore = defineStore('room', () => {
     state.currPlayerId = 0;
   }
 
+  function addPlayerEvent(player:Player) {
+    state.players.push({ ...player } as Player);
+    player.onRemove = () => {
+      const playerIdx = state.players.findIndex((x) => x.name === player.name);
+      state.players.splice(playerIdx, 1);
+    };
+
+    player.onChange = (_) => {
+      const idx = state.players.findIndex((x) => x.id === player.id);
+      state.players.splice(idx, 1, { ...player } as Player);
+    };
+    player.onRemove = () => {
+      const playerIdx = state.players.findIndex((x) => x.name === player.name);
+      state.players.splice(playerIdx, 1);
+    };
+  }
+
   async function initStateChanges(room:Room) {
     const roomState:SessionState = room.state;
     clearLocalState();
@@ -31,42 +48,26 @@ export const useRoomStore = defineStore('room', () => {
       window.location.reload();
     });
 
-    roomState.players.onAdd = (player:Player) => {
-      state.players.push({ ...player } as Player);
-      player.onRemove = () => {
-        const playerIdx = state.players.findIndex((x) => x.name === player.name);
-        state.players.splice(playerIdx, 1);
-      };
+    roomState.players.onAdd = addPlayerEvent;
+    if (roomState.players.length !== state.players.length) {
+      roomState.players.forEach((player) => addPlayerEvent(player));
+    }
 
-      player.onChange = (changes) => {
-        const idx = state.players.findIndex((x) => x.id === player.id);
-        state.players.splice(idx, 1, { ...player } as Player);
-      };
-      player.onRemove = () => {
-        const playerIdx = state.players.findIndex((x) => x.name === player.name);
-        state.players.splice(playerIdx, 1);
-      };
-    };
-    roomState.players.onChange = (player:Player, key:number) => {
-      state.players = [...roomState.players];
-    };
-
+    state.currPlayerId = roomState.currPlayerId;
     roomState.listen('currPlayerId', (id:number) => {
       state.currPlayerId = id;
     });
 
     roomState.spectators.onAdd = (spectator:Spectator) => {
       state.spectators.set(spectator.clientId, spectator);
-      spectator.onChange = (changes) => {
-        // debugger;
-      };
 
       spectator.onRemove = () => {
         state.spectators.delete(spectator.clientId);
       };
     };
 
-    roomState.listen('gameMaster', (newVal:string, prevVal:string) => {
+    state.gameMaster = roomState.gameMaster;
+    roomState.listen('gameMaster', (newVal:string, _:string) => {
       state.gameMaster = newVal;
     });
   }
