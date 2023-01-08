@@ -18,7 +18,7 @@ pres.keys['session_limit'] = process.env.SESSION_LIMIT;
 pres.keys['lobby_curr'] = 0;
 pres.keys['lobby_limit'] = process.env.LOBBY_LIMIT;
 
-if (!process.env.NODE_ENV) {
+if (process.env.NODE_ENV !== 'production') {
   const app = express();
   app.use('/monit', monitor());
   app.listen(9002);
