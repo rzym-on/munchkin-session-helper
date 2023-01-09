@@ -12,4 +12,5 @@ export class Spectator extends Schema {
     @type("string") public clientId!: string;
     @type("boolean") public connected!: boolean;
     @type("string") public name!: string;
+    @type("number") public fontSize!: number;
 }
