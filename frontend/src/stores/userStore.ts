@@ -11,6 +11,7 @@ export interface UserState {
   loading: boolean;
   // client: Client | undefined;
   room: Room | undefined;
+  fontSize: number;
 }
 
 interface SwitchRoom {
@@ -23,6 +24,7 @@ export const useUserStore = defineStore('user', () => {
   const state = reactive<UserState>({
     loading: false,
     room: undefined,
+    fontSize: 19,
   });
 
   function leaveRoom() {
@@ -37,6 +39,8 @@ export const useUserStore = defineStore('user', () => {
     client = new Client(url);
   }
 
+  const isInSession = computed(() => !!state.room && state.room.name === 'session_room');
+
   async function joinLobby() {
     initConnection();
     if (!client) return;
@@ -45,7 +49,7 @@ export const useUserStore = defineStore('user', () => {
 
     lobbyRoom.onLeave(() => leaveRoom());
     lobbyRoom.onMessage('switchRoom', async (message:SwitchRoom) => {
-      if (!client) return;
+      if (!client || isInSession.value) return;
       const sessionRoom = await switchRoom(lobbyRoom, client, message.toRoomId);
 
       if (!sessionRoom) return;
@@ -127,8 +131,13 @@ export const useUserStore = defineStore('user', () => {
     updatePlayer(currentPlayer as Player);
   }
 
+  function textSize(multiplier = 1) {
+    return { fontSize: `${state.fontSize * multiplier}px` };
+  }
+
   return {
     state,
+    client,
     joinLobby,
     joinCreateSessionRoom,
     tryReconnectSessionRoom,
@@ -136,10 +145,11 @@ export const useUserStore = defineStore('user', () => {
     updatePlayer,
     updatePlayerCommand,
     addSpectator,
+    isInSession,
+    textSize,
     isConnectedToRoom: computed(() => !!state.room),
     roomName: computed(() => state.room?.id || ''),
     isInLobby: computed(() => !!state.room && state.room.name === 'lobby_room'),
-    isInSession: computed(() => !!state.room && state.room.name === 'session_room'),
     getUserId: computed(() => state.room?.sessionId || ''),
     connectionString: computed(() => `${state.room?.sessionId} ${state.room?.id}` || ''),
     amIGameMaster: computed(() => roomStore.state.gameMaster === state.room?.sessionId),

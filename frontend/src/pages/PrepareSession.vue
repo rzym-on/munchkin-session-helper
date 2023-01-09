@@ -65,15 +65,29 @@
         <template #no-data />
         <template #body-cell-showInfo="props">
           <q-td :props="props">
-            <div>
-              <q-btn
-                size="md"
-                flat
-                icon="mdi-logout"
-                title="Kick spectator"
-                @click="kickSpectator(props.key)"
-              />
-            </div>
+            <q-btn
+              size="lg"
+              flat
+              icon="mdi-logout"
+              title="Kick spectator"
+              @click="kickSpectator(props.key)"
+            />
+            <q-btn
+              size="lg"
+              flat
+              icon="mdi-plus"
+              title="Increase font size"
+              @click="changeFont(props.key, 2)"
+              :disabled="props.row.fontSize >= font.limit.max"
+            />
+            <q-btn
+              size="lg"
+              flat
+              icon="mdi-minus"
+              title="Decrease font size"
+              @click="changeFont(props.key, -2)"
+              :disabled="props.row.fontSize <= font.limit.min"
+            />
           </q-td>
         </template>
       </q-table>
@@ -127,6 +141,7 @@ import { useUserStore } from 'src/stores/userStore';
 import { defineAsyncComponent } from 'vue';
 import editDialogCmp from 'src/cmp/editDialogCmp';
 import { Player } from 'src/colyseus/schema/Player';
+import useFontSize from 'src/cmp/useFontSize';
 
 const EditPlayerDialog = defineAsyncComponent({
   loader: () => import('src/components/dialog/EditPlayerDialog.vue'),
@@ -142,6 +157,7 @@ const playerDialog = editDialogCmp();
 const spectatorDialog = editDialogCmp();
 const roomStore = useRoomStore();
 const userStore = useUserStore();
+const font = useFontSize(15, 50);
 
 if (!userStore.isInSession) {
   userStore.joinCreateSessionRoom().then(() => {
@@ -165,6 +181,15 @@ function kickSpectator(clientId:string) {
     textColor: 'white',
     icon: 'check',
     message: `Spectator ${clientId} left`,
+  });
+}
+function changeFont(clientId:string, amount:number) {
+  const spectator = roomStore.state.spectators.get(clientId);
+  if (!spectator) return;
+  spectator.fontSize += amount;
+  userStore.serverMsg('changeFontSize', {
+    spectatorId: clientId,
+    fontSize: spectator.fontSize,
   });
 }
 

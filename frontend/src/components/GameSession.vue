@@ -6,7 +6,7 @@
       class="col-12 col-md-6"
       v-if="roomStore.anyPlayers"
     >
-      <q-card style="min-height: 45vh">
+      <q-card>
         <q-card-section class="center">
           <div class="heading">
             <q-icon
@@ -14,31 +14,24 @@
               class="rotate-180"
               name="double_arrow"
               style="display: block"
-              :style="{ color: roomStore.currentPlayer?.color }"
+              :style="{ color: roomStore.currentPlayer?.color, ...userStore.textSize(2.7)}"
             />
-            <div class="text-h2 medieval">
+            <div
+              class="text-h2 medieval"
+              :style="userStore.textSize(2.7)"
+            >
               <b>{{ roomStore.currentPlayerName }}</b>
             </div>
             <q-icon
               size="xl"
               name="double_arrow"
               style="display: block"
-              :style="{ color: roomStore.currentPlayer?.color }"
+              :style="{ color: roomStore.currentPlayer?.color, ...userStore.textSize(2.7) }"
             />
           </div>
           <q-separator spaced="sm" />
-          <div class="row">
-            <div class="col-2">
-              <q-btn
-                v-if="userStore.amIGameMaster"
-                size="md"
-                class="custom-outline rotate-content-left"
-                @click="userStore.serverMsg('prevTurn')"
-              >
-                <span class="content">{{ roomStore.prevPlayerName }}</span>
-              </q-btn>
-            </div>
-            <div class="col-3">
+          <div class="row items-center justify-center">
+            <div class="col-5">
               <q-btn
                 v-if="userStore.amIGameMaster"
                 dense
@@ -48,10 +41,16 @@
                 icon="expand_less"
                 @click="userStore.updatePlayerCommand('lvlUp')"
               />
-              <div class="text-h2 medieval">
+              <div
+                class="text-h2 medieval"
+                :style="{...userStore.textSize(4), padding: `${userStore.state.fontSize*0.8}px`}"
+              >
                 <b>{{ roomStore.currentPlayer?.lvl }}</b>
               </div>
-              <div class="text-h4 medieval">
+              <div
+                class="text-h4 medieval"
+                :style="userStore.textSize(1.5)"
+              >
                 LVL
               </div>
               <q-btn
@@ -69,6 +68,7 @@
                 size="xl"
                 round
                 class="custom-outline"
+                :style="userStore.textSize(1.1)"
                 :disable="!userStore.amIGameMaster"
                 :loading="roomStore.state.loading"
                 :icon="roomStore.currentPlayer?.isWoman ? 'female' : 'male'"
@@ -78,7 +78,7 @@
                 <template #loading />
               </q-btn>
             </div>
-            <div class="col-3">
+            <div class="col-5">
               <q-btn
                 dense
                 round
@@ -89,10 +89,16 @@
                 icon="expand_less"
                 @click="userStore.updatePlayerCommand('gearUp')"
               />
-              <div class="text-h2 medieval">
+              <div
+                class="text-h2 medieval"
+                :style="{...userStore.textSize(4), padding: `${userStore.state.fontSize*0.8}px`}"
+              >
                 <b>{{ roomStore.currentPlayer?.gear }}</b>
               </div>
-              <div class="text-h4 medieval">
+              <div
+                class="text-h4 medieval"
+                :style="userStore.textSize(1.5)"
+              >
                 GEAR
               </div>
               <q-btn
@@ -105,14 +111,42 @@
                 @click="userStore.updatePlayerCommand('gearDown')"
               />
             </div>
-            <div class="col-2">
+          </div>
+          <div
+            class="row top-bot-margin justify-evenly"
+            v-if="userStore.amIGameMaster"
+          >
+            <div class="col-5">
               <q-btn
-                v-if="userStore.amIGameMaster"
                 size="md"
-                class="custom-outline rotate-content-right"
+                class="custom-outline button-max-width"
+                @click="userStore.serverMsg('prevTurn')"
+              >
+                <span>
+                  {{ roomStore.prevPlayerName }}
+                  <q-icon
+                    size="md"
+                    class="rotate-180"
+                    name="double_arrow"
+                    style="display: block"
+                  />
+                </span>
+              </q-btn>
+            </div>
+            <div class="col-5">
+              <q-btn
+                size="md"
+                class="custom-outline button-max-width"
                 @click="userStore.serverMsg('nextTurn')"
               >
-                <span class="content">{{ roomStore.nextPlayerName }}</span>
+                <span>
+                  {{ roomStore.nextPlayerName }}
+                  <q-icon
+                    size="md"
+                    name="double_arrow"
+                    style="display: block"
+                  />
+                </span>
               </q-btn>
             </div>
           </div>
@@ -123,7 +157,7 @@
       <q-table
         title="Players"
         :rows="roomStore.state.players"
-        :columns="playerColumns()"
+        :columns="playerColumns(userStore.state.fontSize)"
         row-key="id"
         :loading="roomStore.state.loading"
         style="height: 50vh"
@@ -186,22 +220,8 @@ function rowClick(e:Event, player:Player) {
   text-align: center;
 }
 
-.rotate-content-left {
+.button-max-width {
   width: 100%;
-  height: 100%;
-  span.content {
-    transform: rotate(270deg);
-    font-size: 1.5rem;
-  }
-}
-
-.rotate-content-right {
-  width: 100%;
-  height: 100%;
-  span.content {
-    transform: rotate(90deg);
-    font-size: 1.5rem;
-  }
 }
 
 </style>
