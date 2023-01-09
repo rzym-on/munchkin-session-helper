@@ -129,6 +129,15 @@ export class SessionRoom extends Room<SessionState> {
 
       this.state.currPlayerId = selectedPlayer.id;
     });
+
+    this.onMessage("changeFontSize", (client:Client, {spectatorId, fontSize}:{spectatorId:string, fontSize:number}) => {
+      if (!this.isGameMaster(client)) return;
+
+      const roomClient = this.clients.find((cl) => cl.id === spectatorId);
+      const spectator = this.state.spectators.get(spectatorId);
+      if (!roomClient || !spectator) return;
+      spectator.fontSize = fontSize;
+    });
   }
 
   onJoin (client: Client, options: any) {

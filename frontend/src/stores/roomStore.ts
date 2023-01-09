@@ -6,6 +6,7 @@ import { SessionState } from 'src/colyseus/schema/SessionState';
 import { computed, reactive } from 'vue';
 import { ModelInfoColumn } from 'src/types/quasar-table';
 import { Spectator } from 'src/colyseus/schema/Spectator';
+import { useUserStore } from './userStore';
 
 export const useRoomStore = defineStore('room', () => {
   const state = reactive({
@@ -15,6 +16,8 @@ export const useRoomStore = defineStore('room', () => {
     spectators: new Map<string, Spectator>(),
     gameMaster: '',
   });
+
+  const userStore = useUserStore();
 
   function clearLocalState() {
     state.loading = false;
@@ -40,6 +43,23 @@ export const useRoomStore = defineStore('room', () => {
     };
   }
 
+  function addSpectatorEvent(spectator:Spectator) {
+    state.spectators.set(spectator.clientId, spectator);
+
+    spectator.onChange = (changes) => {
+      if (userStore.state.room?.sessionId === spectator.clientId) {
+        const fontSize = changes.find((x) => x.field === 'fontSize')?.value;
+        if (fontSize) {
+          userStore.state.fontSize = fontSize;
+        }
+      }
+    };
+
+    spectator.onRemove = () => {
+      state.spectators.delete(spectator.clientId);
+    };
+  }
+
   async function initStateChanges(room:Room) {
     const roomState:SessionState = room.state;
     clearLocalState();
@@ -58,13 +78,10 @@ export const useRoomStore = defineStore('room', () => {
       state.currPlayerId = id;
     });
 
-    roomState.spectators.onAdd = (spectator:Spectator) => {
-      state.spectators.set(spectator.clientId, spectator);
-
-      spectator.onRemove = () => {
-        state.spectators.delete(spectator.clientId);
-      };
-    };
+    roomState.spectators.onAdd = addSpectatorEvent;
+    if (roomState.spectators.size !== state.spectators.size) {
+      roomState.spectators.forEach((spectator) => addSpectatorEvent(spectator));
+    }
 
     state.gameMaster = roomState.gameMaster;
     roomState.listen('gameMaster', (newVal:string, _:string) => {
@@ -76,7 +93,7 @@ export const useRoomStore = defineStore('room', () => {
     return state.players.find((x) => x.id === id);
   }
 
-  const currentPlayer = computed(() => state.players.find((x) => x.id === state.currPlayerId));
+  const currentPlayer = computed(() => getById(state.currPlayerId));
 
   return {
     state,
@@ -90,7 +107,6 @@ export const useRoomStore = defineStore('room', () => {
       return spectators;
     }),
     anyPlayers: computed(() => state.players.length > 0),
-    getPlayerByName: computed((name: string) => state.players.find((x) => x.name === name)),
     getNames: computed(() => state.players.map((x) => x.name)),
     currentPlayer,
     currentPlayerName: computed(() => currentPlayer.value?.name || ''),
@@ -116,7 +132,7 @@ export const useRoomStore = defineStore('room', () => {
   };
 });
 
-export const playerColumns = ():QTableColumn<ModelInfoColumn<Player>>[] => [
+export const playerColumns = (fontSize = 15):QTableColumn<ModelInfoColumn<Player>>[] => [
   {
     name: 'showInfo', label: '', field: 'showInfo', align: 'left', style: 'width: 100px',
   },
@@ -124,22 +140,25 @@ export const playerColumns = ():QTableColumn<ModelInfoColumn<Player>>[] => [
     name: 'color', align: 'left', label: 'Color', field: 'color',
   },
   {
-    name: 'isWoman', align: 'left', label: 'Gender', field: 'isWoman',
+    name: 'isWoman', align: 'left', label: 'Gender', field: 'isWoman', style: `font-size: ${fontSize}px`,
   },
   {
-    name: 'lvl', align: 'left', label: 'Level', field: 'lvl',
+    name: 'lvl', align: 'left', label: 'Level', field: 'lvl', style: `font-size: ${fontSize}px`,
   },
   {
-    name: 'gear', align: 'left', label: 'Gear', field: 'gear',
+    name: 'gear', align: 'left', label: 'Gear', field: 'gear', style: `font-size: ${fontSize}px`,
   },
   {
-    name: 'name', align: 'left', label: 'Name', field: 'name',
+    name: 'name', align: 'left', label: 'Name', field: 'name', style: `font-size: ${fontSize}px`,
   },
 ];
 
 export const spectatorColumns = ():QTableColumn<ModelInfoColumn<Spectator>>[] => [
   {
     name: 'showInfo', label: '', field: 'showInfo', align: 'left', style: 'width: 100px',
+  },
+  {
+    name: 'fontSize', align: 'center', label: 'Text size', field: 'fontSize',
   },
   {
     name: 'name', align: 'left', label: 'Name', field: 'name',
