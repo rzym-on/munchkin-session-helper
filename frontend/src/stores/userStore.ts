@@ -121,7 +121,7 @@ export const useUserStore = defineStore('user', () => {
       case 'gearDown':
         currentPlayer.gear -= currentPlayer.gear === 0 ? 0 : 1;
         break;
-      case 'changeGender':
+      case 'changeSex':
         currentPlayer.isWoman = !currentPlayer.isWoman;
         break;
       default:

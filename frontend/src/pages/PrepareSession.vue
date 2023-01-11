@@ -6,13 +6,14 @@
     <div class="col-12 col-md-8 text-center">
       <q-table
         dense
-        title="Players"
+        :title="$t('playerTable.title')"
         :rows="roomStore.state.players"
         :columns="playerColumns()"
         row-key="id"
         color="amber"
         :loading="roomStore.state.loading"
         :rows-per-page-options="[0]"
+        hide-pagination
       >
         <template #no-data />
         <template #body-cell-showInfo="props">
@@ -23,7 +24,7 @@
               flat
               round
               icon="mdi-pencil"
-              title="Edit player"
+              :title="$t('manageGame.editPlayerBtn')"
               @click="playerDialog.showEditDialog(props.row.id)"
             />
           </q-td>
@@ -45,7 +46,7 @@
                 size="md"
                 flat
                 :icon="props.value ? 'female' : 'male'"
-                @click="changeGender(props.row.id)"
+                @click="changeSex(props.row.id)"
               />
             </div>
           </q-td>
@@ -55,12 +56,13 @@
     <div class="col-12 col-md-4 text-center">
       <q-table
         dense
-        title="Spectators"
+        :title="$t('spectatorTable.title')"
         :rows="roomStore.spectators"
         :columns="spectatorColumns()"
         row-key="clientId"
         color="amber"
         :rows-per-page-options="[0]"
+        hide-pagination
       >
         <template #no-data />
         <template #body-cell-showInfo="props">
@@ -69,14 +71,14 @@
               size="lg"
               flat
               icon="mdi-logout"
-              title="Kick spectator"
+              :title="$t('manageGame.kickSpectator')"
               @click="kickSpectator(props.key)"
             />
             <q-btn
               size="lg"
               flat
               icon="mdi-plus"
-              title="Increase font size"
+              :title="$t('manageGame.increaseText')"
               @click="changeFont(props.key, 2)"
               :disabled="props.row.fontSize >= font.limit.max"
             />
@@ -84,7 +86,7 @@
               size="lg"
               flat
               icon="mdi-minus"
-              title="Decrease font size"
+              :title="$t('manageGame.decreaseText')"
               @click="changeFont(props.key, -2)"
               :disabled="props.row.fontSize <= font.limit.min"
             />
@@ -108,7 +110,7 @@
         label-position="left"
         color="secondary"
         icon="person_add"
-        label="Add player"
+        :label="$t('manageGame.addPlayerBtn')"
         @click="playerDialog.showEditDialog(-1)"
       />
       <q-fab-action
@@ -116,7 +118,7 @@
         label-position="left"
         color="primary"
         icon="person_search"
-        label="Add spectator"
+        :label="$t('manageGame.addSpectatorBtn')"
         @click="spectatorDialog.isVisible.value = true"
       />
     </q-fab>
@@ -166,7 +168,7 @@ if (!userStore.isInSession) {
   });
 }
 
-function changeGender(playerId:number) {
+function changeSex(playerId:number) {
   const player = roomStore.getById(playerId);
   if (!player) return;
   player.isWoman = !player.isWoman;

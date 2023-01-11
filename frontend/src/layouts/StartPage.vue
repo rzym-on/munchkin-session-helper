@@ -1,16 +1,30 @@
 <template>
   <q-layout view="hHh lpR fFf">
     <q-page-container>
-      <q-page class="row justify-evenly items-center">
+      <q-page
+        class="row justify-center items-center"
+        style="align-content: center;"
+      >
+        <div
+          class="col-12"
+          style="text-align: center;"
+        >
+          <q-btn
+            outline
+            class="q-mx-md"
+            @click="changeLang"
+          >
+            {{ locale === 'pl-PL' ? 'English' : 'Polski' }}
+          </q-btn>
+        </div>
         <div class="col-12 col-md-5">
           <q-card>
             <q-card-section class="text-center">
               <div class="text-h4">
-                Hello fellow
+                {{ $t('startPage.title') }}
               </div>
               <p>
-                I'm here to help you manage your munchkin game session.
-                First tell me who you are
+                {{ $t('startPage.subTitle') }}
               </p>
             </q-card-section>
             <q-card-section class="text-center">
@@ -23,12 +37,11 @@
                         text-color="dark"
                         :to="{ name: 'PrepareSession' }"
                       >
-                        Game master
+                        {{ $t('startPage.gameMasterButton') }}
                       </q-btn>
                     </div>
                     <div class="col-12">
-                      Choose if you're the chosen one to manage
-                      stats of the munchkin session.
+                      {{ $t('startPage.gameMasterDesc') }}
                     </div>
                   </div>
                 </div>
@@ -45,11 +58,11 @@
                         text-color="dark"
                         :to="{ name: 'LobbyRoom' }"
                       >
-                        Spectator
+                        {{ $t('startPage.spectatorButton') }}
                       </q-btn>
                     </div>
                     <div class="col-12">
-                      Choose if you're the spectator of the session.
+                      {{ $t('startPage.spectatorDesc') }}
                     </div>
                   </div>
                 </div>
@@ -63,14 +76,40 @@
 </template>
 
 <script setup lang="ts">
-import { useQuasar } from 'quasar';
+import { LocalStorage, useQuasar } from 'quasar';
 import { useUserStore } from 'src/stores/userStore';
+import { watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 
+const route = useRoute();
+const router = useRouter();
 const q = useQuasar();
 q.dark.set(true);
+const { locale } = useI18n({ useScope: 'global' });
 
 const userStore = useUserStore();
 userStore.state.room?.leave();
+
+function changeLang() {
+  router.push(`/${locale.value === 'pl-PL' ? 'en-US' : 'pl-PL'}`);
+}
+
+locale.value = q.lang.getLocale();
+
+if (route.params.locale) {
+  locale.value = route.params.locale;
+  LocalStorage.set('locale', locale.value);
+} else {
+  const localLocale = LocalStorage.getItem<string>('locale');
+  if (localLocale) locale.value = localLocale;
+}
+
+const stopWatch = watch(() => route.params.locale, (newVal, oldVal) => {
+  if (oldVal === newVal || !newVal) return;
+  stopWatch();
+  window.location.reload();
+});
 </script>
 <style scoped lang="scss">
 .q-card {
