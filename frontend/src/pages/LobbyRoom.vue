@@ -6,13 +6,10 @@
           <q-card>
             <q-card-section class="text-center">
               <div class="text-h4">
-                So here we are as a spectator
+                {{ $t('lobbyRoom.title') }}
               </div>
               <p>
-                You're now in the lobby room.
-                This is your unique QR Code. Game master need to scan it, to
-                add you to game session. Make sure to increase the brightness of the screen,
-                so the QR Code will be visible.
+                {{ $t('lobbyRoom.description') }}
               </p>
             </q-card-section>
             <q-card-section class="text-center">
@@ -31,7 +28,7 @@
               <q-space />
               <q-btn
                 outline
-                label="Leave lobby"
+                :label="$t('lobbyRoom.leaveLobbyButton')"
                 :to="{ name: 'StartPage' }"
               />
               <q-space />

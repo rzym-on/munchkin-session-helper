@@ -17,7 +17,7 @@
               size="md"
             />
           </q-avatar>
-          Munchkin game helper
+          {{ $t('manageGame.headerTitle') }}
         </q-toolbar-title>
 
         <q-btn
@@ -51,7 +51,7 @@
             </q-item-section>
 
             <q-item-section>
-              Prepare game
+              {{ $t('manageGame.drawer.prepareGame') }}
             </q-item-section>
           </q-item>
           <q-item
@@ -63,7 +63,7 @@
             </q-item-section>
 
             <q-item-section>
-              Run game
+              {{ $t('manageGame.drawer.runGame') }}
             </q-item-section>
           </q-item>
         </q-list>
@@ -76,8 +76,10 @@
   </q-layout>
 </template>
 <script setup lang="ts">
-import { useQuasar } from 'quasar';
+import { LocalStorage, useQuasar } from 'quasar';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { i18n } from 'src/i18n';
 
 const q = useQuasar();
 
@@ -91,6 +93,16 @@ q.dark.set(darkMode.value);
 function switchDark() {
   darkMode.value = !darkMode.value;
   q.dark.set(darkMode.value);
+}
+
+const { locale } = useI18n({ useScope: 'global' });
+if (LocalStorage.has('locale')) {
+  i18n.global.locale.value = LocalStorage.getItem('locale') ?? 'en-US';
+  locale.value = LocalStorage.getItem('locale');
+} else {
+  LocalStorage.set('locale', q.lang.getLocale());
+  i18n.global.locale.value = LocalStorage.getItem('locale') ?? 'en-US';
+  locale.value = LocalStorage.getItem('locale');
 }
 </script>
 <style lang="scss"></style>

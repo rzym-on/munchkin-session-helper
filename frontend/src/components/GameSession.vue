@@ -51,7 +51,7 @@
                 class="text-h4 medieval"
                 :style="userStore.textSize(1.5)"
               >
-                LVL
+                {{ $t('gameSession.lvl') }}
               </div>
               <q-btn
                 v-if="userStore.amIGameMaster"
@@ -72,7 +72,7 @@
                 :disable="!userStore.amIGameMaster"
                 :loading="roomStore.state.loading"
                 :icon="roomStore.currentPlayer?.isWoman ? 'female' : 'male'"
-                @click="userStore.updatePlayerCommand('changeGender')"
+                @click="userStore.updatePlayerCommand('changeSex')"
               >
                 <!-- To disable spinner while loading -->
                 <template #loading />
@@ -99,7 +99,7 @@
                 class="text-h4 medieval"
                 :style="userStore.textSize(1.5)"
               >
-                GEAR
+                {{ $t('gameSession.gear') }}
               </div>
               <q-btn
                 dense
@@ -155,7 +155,7 @@
     </div>
     <div class="col-12 col-md-6 pad">
       <q-table
-        title="Players"
+        :title="$t('playerTable.title')"
         :rows="roomStore.state.players"
         :columns="playerColumns(userStore.state.fontSize)"
         row-key="id"
@@ -163,6 +163,7 @@
         style="height: 50vh"
         :rows-per-page-options="[0]"
         @row-click="rowClick"
+        hide-pagination
       >
         <template #loading />
         <template #body-cell-color="props">

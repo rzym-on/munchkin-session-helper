@@ -77,7 +77,7 @@ export class SessionRoom extends Room<SessionState> {
       this.state.spectators.set(client.id, spectator);
     });
 
-    this.onMessage("changeGender", (client, playerId:number) => {
+    this.onMessage("changeSex", (client, playerId:number) => {
       if (!this.isGameMaster(client)) return;
 
       const player = this.state.players.find((x) => x.id === playerId);
