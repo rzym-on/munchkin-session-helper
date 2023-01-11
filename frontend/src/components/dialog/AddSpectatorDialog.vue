@@ -6,7 +6,7 @@
   >
     <q-card class="base-dialog">
       <q-bar>
-        <strong>Add spectator</strong>
+        <strong>{{ $t('spectatorDialog.title') }}</strong>
         <q-space />
         <q-btn
           dense
@@ -14,7 +14,7 @@
           icon="mdi-close"
           v-close-popup
         >
-          <q-tooltip>Close</q-tooltip>
+          <q-tooltip>{{ $t('baseDialog.close') }}</q-tooltip>
         </q-btn>
       </q-bar>
 
@@ -35,9 +35,9 @@
                   dense
                   outlined
                   v-model="spectatorName"
-                  label="Type your own name for this spectator"
+                  :label="$t('spectatorDialog.spectatorName')"
                   lazy-rules
-                  :rules="[ val => val && val.length > 0 || 'Please type something']"
+                  :rules="[requiredField]"
                 />
               </div>
             </div>
@@ -49,13 +49,13 @@
         v-if="!showQrScanner && !enterByString"
       >
         <q-btn
-          label="Scan QR Code"
+          :label="$t('spectatorDialog.scanQRBtn')"
           type="submit"
           color="primary"
           @click="onSubmit(true)"
         />
         <q-btn
-          label="connection string"
+          :label="$t('spectatorDialog.connectionStringBtn')"
           type="submit"
           color="primary"
           @click="onSubmit()"
@@ -75,13 +75,13 @@
                   dense
                   outlined
                   v-model="connectionString"
-                  label="Paste connection string from spectator"
+                  :label="$t('spectatorDialog.connectionString')"
                   lazy-rules
-                  :rules="[ val => val && val.length > 0 || 'Please type something']"
+                  :rules="[requiredField]"
                 />
               </div>
               <q-btn
-                label="Add"
+                :label="$t('baseDialog.add')"
                 color="primary"
                 @click="addByString"
               />
@@ -91,7 +91,7 @@
       </q-card-section>
 
       <q-card-section v-if="showQrScanner">
-        Use camera to scan for QR Code on spectator monitor, to add them to your session
+        {{ $t('spectatorDialog.scanQR') }}
       </q-card-section>
 
       <q-card-section v-if="showQrScanner">
@@ -106,6 +106,7 @@ import DialogVisible from 'src/cmp/dialogCmp';
 import { QForm, useQuasar } from 'quasar';
 import { Ref, ref } from 'vue';
 import { QrcodeStream } from 'qrcode-reader-vue3';
+import { requiredField } from 'src/tools/validationRules';
 
 defineEmits(['update:modelValue']);
 defineProps<{

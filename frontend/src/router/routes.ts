@@ -7,6 +7,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('src/layouts/StartPage.vue'),
   },
   {
+    path: '/:locale',
+    name: 'StartPageLanguage',
+    component: () => import('src/layouts/StartPage.vue'),
+  },
+  {
     path: '/manage',
     name: 'ManageGame',
     component: () => import('src/layouts/ManageGame.vue'),

@@ -6,7 +6,7 @@
   >
     <q-card class="base-dialog">
       <q-bar>
-        <strong>{{ props.playerId === -1 ? 'Add' : 'Edit' }}Player</strong>
+        <strong>{{ props.playerId === -1 ? $t('baseDialog.add') : $t('baseDialog.edit') }} {{ $t('playerDialog.playerTitle') }}</strong>
         <q-space />
         <q-btn
           dense
@@ -14,7 +14,7 @@
           icon="mdi-close"
           v-close-popup
         >
-          <q-tooltip>Close</q-tooltip>
+          <q-tooltip>{{ $t('baseDialog.close') }}</q-tooltip>
         </q-btn>
       </q-bar>
 
@@ -34,9 +34,9 @@
                   outlined
                   hide-bottom-space
                   v-model="player.name"
-                  label="Player name *"
+                  :label="playerMapping('name')"
                   lazy-rules
-                  :rules="[ val => val && val.length > 0 || 'Please type something']"
+                  :rules="[requiredField]"
                 />
               </div>
               <div class="col-md-6 col-12">
@@ -53,8 +53,9 @@
                       dense
                       hide-bottom-space
                       v-model="player.color"
+                      lazy-rules
                       :rules="['anyColor']"
-                      label="Player color *"
+                      :label="playerMapping('color')"
                     >
                       <template #append>
                         <q-icon
@@ -82,12 +83,12 @@
                   <q-radio
                     v-model="isWoman"
                     :val="1"
-                    label="Woman"
+                    :label="$t('playerDialog.woman')"
                   />
                   <q-radio
                     v-model="isWoman"
                     :val="0"
-                    label="Man"
+                    :label="$t('playerDialog.man')"
                   />
                 </div>
               </div>
@@ -101,19 +102,19 @@
         <q-space />
         <q-btn
           color="positive"
-          label="Save"
+          :label="$t('baseDialog.save')"
           @click="onSubmit"
         />
         <q-btn
           v-if="props.playerId !== -1"
           color="warning"
           text-color="dark"
-          label="Delete"
+          :label="$t('baseDialog.delete')"
           @click="deletePlayer"
         />
         <q-btn
           color="primary"
-          label="Cancel"
+          :label="$t('baseDialog.cancel')"
           v-close-popup
         />
       </q-card-actions>
@@ -124,11 +125,15 @@
 import { QForm, useQuasar } from 'quasar';
 import DialogVisible from 'src/cmp/dialogCmp';
 import { Player } from 'src/colyseus/schema/Player';
-import { useRoomStore } from 'src/stores/roomStore';
+import { useRoomStore, playerMapping } from 'src/stores/roomStore';
 import { useUserStore } from 'src/stores/userStore';
 import { Ref, ref } from 'vue';
+import { i18n } from 'src/i18n';
+import { requiredField } from 'src/tools/validationRules';
 
-const emits = defineEmits(['update:modelValue']);
+const { t } = i18n.global;
+
+defineEmits(['update:modelValue']);
 const props = defineProps<{
   modelValue: boolean,
   playerId: number
@@ -154,7 +159,7 @@ function deletePlayer() {
     color: 'green-4',
     textColor: 'dark',
     icon: 'check',
-    message: `Player ${player.value.name} deleted from session`,
+    message: t('playerDialog.deletedNotification', { name: player.value.name }),
   });
   dialogVisible.value = false;
 }
@@ -171,7 +176,7 @@ function onSubmit() {
     color: 'green-4',
     textColor: 'dark',
     icon: 'check',
-    message: `Added player: ${player.value.name}`,
+    message: t('playerDialog.addedNotification', { name: player.value.name }),
   });
   dialogVisible.value = false;
 }

@@ -6,6 +6,7 @@ import { SessionState } from 'src/colyseus/schema/SessionState';
 import { computed, reactive } from 'vue';
 import { ModelInfoColumn } from 'src/types/quasar-table';
 import { Spectator } from 'src/colyseus/schema/Spectator';
+import { i18n } from 'src/i18n';
 import { useUserStore } from './userStore';
 
 export const useRoomStore = defineStore('room', () => {
@@ -110,7 +111,7 @@ export const useRoomStore = defineStore('room', () => {
     getNames: computed(() => state.players.map((x) => x.name)),
     currentPlayer,
     currentPlayerName: computed(() => currentPlayer.value?.name || ''),
-    currentPlayerGender: computed(() => (currentPlayer.value?.isWoman ? 'female' : 'male')),
+    currentPlayerSex: computed(() => (currentPlayer.value?.isWoman ? 'female' : 'male')),
     prevPlayerName: computed(() => {
       const currPlayerId = state.players.indexOf(currentPlayer.value as Player);
       const prevIdx = currPlayerId - 1;
@@ -132,35 +133,43 @@ export const useRoomStore = defineStore('room', () => {
   };
 });
 
+const { t } = i18n.global;
+
 export const playerColumns = (fontSize = 15):QTableColumn<ModelInfoColumn<Player>>[] => [
   {
     name: 'showInfo', label: '', field: 'showInfo', align: 'left', style: 'width: 100px',
   },
   {
-    name: 'color', align: 'left', label: 'Color', field: 'color',
+    name: 'color', align: 'left', label: t('playerTable.color'), field: 'color',
   },
   {
-    name: 'isWoman', align: 'left', label: 'Gender', field: 'isWoman', style: `font-size: ${fontSize}px`,
+    name: 'isWoman', align: 'center', label: t('playerTable.isWoman'), field: 'isWoman', style: `font-size: ${fontSize}px`,
   },
   {
-    name: 'lvl', align: 'left', label: 'Level', field: 'lvl', style: `font-size: ${fontSize}px`,
+    name: 'lvl', align: 'left', label: t('playerTable.lvl'), field: 'lvl', style: `font-size: ${fontSize}px`,
   },
   {
-    name: 'gear', align: 'left', label: 'Gear', field: 'gear', style: `font-size: ${fontSize}px`,
+    name: 'gear', align: 'left', label: t('playerTable.gear'), field: 'gear', style: `font-size: ${fontSize}px`,
   },
   {
-    name: 'name', align: 'left', label: 'Name', field: 'name', style: `font-size: ${fontSize}px`,
+    name: 'name', align: 'left', label: t('playerTable.name'), field: 'name', style: `font-size: ${fontSize}px`,
   },
 ];
+export function playerMapping(field:string) {
+  return playerColumns().find((x) => x.field === field)?.label ?? '';
+}
 
 export const spectatorColumns = ():QTableColumn<ModelInfoColumn<Spectator>>[] => [
   {
     name: 'showInfo', label: '', field: 'showInfo', align: 'left', style: 'width: 100px',
   },
   {
-    name: 'fontSize', align: 'center', label: 'Text size', field: 'fontSize',
+    name: 'fontSize', align: 'center', label: t('spectatorTable.fontSize'), field: 'fontSize',
   },
   {
-    name: 'name', align: 'left', label: 'Name', field: 'name',
+    name: 'name', align: 'left', label: t('spectatorTable.name'), field: 'name',
   },
 ];
+export function spectatorMapping(field:string) {
+  return spectatorColumns().find((x) => x.field === field)?.label ?? '';
+}
