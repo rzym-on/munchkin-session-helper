@@ -3,15 +3,13 @@ services:
   server_munchkin:
     container_name: server.munchkin.sh
     image: ghcr.io/rzym-on/msh-server:latest
-    # build: ./server/
     ports:
-      - "2568:2567"
+      - "9000:2567"
     env_file: ./server/.env
   app_munchkin:
     container_name: app.grand.munchkin.sh
     image: ghcr.io/rzym-on/msh-frontend:latest
-    # build: ./frontend/
     ports:
-      - "4001:4001"
+      - "9001:4001"
     volumes:
-     - ./server-info.json:/app/server-info.json
+     - ./config.json:/app/config.json
